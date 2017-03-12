@@ -1,6 +1,9 @@
 package com.ntk.ehcrawler.model;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Book implements Serializable{
 	/**
@@ -8,13 +11,18 @@ public class Book implements Serializable{
 	 */
 	private static final long serialVersionUID = 2065000192736021013L;
 	private String title;
+	private String url;
 	private String imageSrc;
 	private int fileCount;
 	private int rate;
 	private String type;
+	private Map<String, String> infoMap;
+	private Map<String, Set<String>> tagMap;
+	private LinkedHashMap<String, String> pageMap;
 	
-	public Book(String title, String imageSrc, int fileCount, int rate, String type) {
+	public Book(String title, String url, String imageSrc, int fileCount, int rate, String type) {
 		this.title = title;
+		this.url = url;
 		this.imageSrc = imageSrc;
 		this.fileCount = fileCount;
 		this.rate = rate;
@@ -27,6 +35,15 @@ public class Book implements Serializable{
 	public void setTitle(String title) {
 		this.title = title;
 	}
+	
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
 	public String getImageSrc() {
 		return imageSrc;
 	}
@@ -57,5 +74,29 @@ public class Book implements Serializable{
 		return "Book [title=" + title + ", imageSrc=" + imageSrc + ", fileCount=" + fileCount + ", rate=" + rate
 				+ ", type=" + type + "]";
 	}
-	
+
+	public Map<String, String> getInfoMap() {
+		return infoMap;
+	}
+
+	public void setInfoMap(Map<String, String> infoMap) {
+		this.infoMap = infoMap;
+	}
+
+	public Map<String, Set<String>> getTagMap() {
+		return tagMap;
+	}
+
+	public void setTagMap(Map<String, Set<String>> tagMap) {
+		this.tagMap = tagMap;
+	}
+
+	public Map<String, String> getPageMap() {
+		return pageMap;
+	}
+
+	public void setPageMap(LinkedHashMap<String, String> pageMap) {
+		this.pageMap = pageMap;
+	}
+
 }
