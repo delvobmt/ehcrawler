@@ -1,20 +1,20 @@
 package com.ntk.ehcrawler;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.ntk.ehcrawler.model.Book;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
-import com.ntk.ehcrawler.model.Book;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class EHUtils {
 
@@ -36,50 +36,54 @@ public class EHUtils {
 		try {
 			Document doc = Jsoup.connect(url).cookies(cookies).get();
 			//get detail info
-			Map<String, String> detailMap = doc.select(EHConstants.DETAIL_CSS_SELECTOR).stream()
-				.collect(Collectors.toMap(
-					e->e.select(EHConstants.DETAIL_KEY_CSS_SELECTOR).text().replaceAll(":", ""), 
-					e->e.select(EHConstants.DETAIL_VALUE_CSS_SELECTOR).text()));
+			Map<String, String> detailMap = new HashMap<>();
+            for (Element e: doc.select(EHConstants.DETAIL_CSS_SELECTOR)) {
+                String key = e.select(EHConstants.DETAIL_KEY_CSS_SELECTOR).text().replaceAll(":", "");
+                String value = e.select(EHConstants.DETAIL_VALUE_CSS_SELECTOR).text();
+                detailMap.put(key,value);
+            }
 			book.setInfoMap(detailMap);
 			//get taglist
-			Map<String, Set<String>> tagMap = doc.select(EHConstants.DETAIL_TAGLIST_CSS_SELECTOR).stream()
-				.collect(Collectors.toMap(
-					e->e.select(EHConstants.DETAIL_TAG_PRE_CSS_SELECTOR).text().replaceAll(":", ""),
-					e->e.select(EHConstants.DETAIL_TAG_CSS_SELECTOR).stream()
-						.map(Element::text).collect(Collectors.toSet())));
+			Map<String, Set<String>> tagMap = new HashMap<>();
+            for(Element e: doc.select(EHConstants.DETAIL_TAGLIST_CSS_SELECTOR)) {
+                String key = e.select(EHConstants.DETAIL_TAG_PRE_CSS_SELECTOR).text().replaceAll(":", "");
+                List<String> value = new ArrayList<>();
+                for(Element i: e.select(EHConstants.DETAIL_TAG_CSS_SELECTOR)) {
+                        value.add(i.text());
+                }
+            }
 			book.setTagMap(tagMap);
 			//get pages
-			LinkedHashMap<String, String> pageMap = doc.select(EHConstants.PAGE_URL_CSS_SELECTOR).stream()
-					.map(e->e.attr("href")).collect(Collectors.toMap(
-							Function.identity(), e->"", 
-							(k,v)->{throw new IllegalStateException(String.format("Duplicate key %s", k));}, 
-							LinkedHashMap::new));
-			book.setPageMap(pageMap);
-			System.out.println(pageMap);
+			LinkedHashMap<String, String> pageMap = new LinkedHashMap<>();
+            for(Element e: doc.select(EHConstants.PAGE_URL_CSS_SELECTOR)) {
+                String key = e.attr("href");
+                pageMap.put(key,"");
+            }
+            book.setPageMap(pageMap);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static Set<Book> getBooks() {
+	public static List<Book> getBooks() {
 		Map<String, String> cookies = CookiesHolder.get();
 		try {
 			Document doc = Jsoup.connect(EHConstants.HOST).cookies(cookies).get();
-			Elements items = doc.select(EHConstants.ITEM_CSS_SELECTOR);
-			Set<Book> collect = items.stream().map(i -> {
-				String title = i.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).text();
-				String url = i.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).attr("href");
-				String imageSrc = i.select(EHConstants.ITEM_IMAGE_CSS_SELECTOR).attr("src");
-				String fileCount = i.select(EHConstants.ITEM_FILE_COUNT_CSS_SELECTOR).text();
-				String type = i.select(EHConstants.ITEM_TYPE_CSS_SELECTOR).attr("title");
-				String style = i.select(EHConstants.ITEM_STAR_RATE_CSS_SELECTOR).attr("style");
+			List<Book> books = new ArrayList<>();
+            for(Element e: doc.select(EHConstants.ITEM_CSS_SELECTOR)){
+				String title = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).text();
+				String url = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).attr("href");
+				String imageSrc = e.select(EHConstants.ITEM_IMAGE_CSS_SELECTOR).attr("src");
+				String fileCount = e.select(EHConstants.ITEM_FILE_COUNT_CSS_SELECTOR).text();
+				String type = e.select(EHConstants.ITEM_TYPE_CSS_SELECTOR).attr("title");
+				String style = e.select(EHConstants.ITEM_STAR_RATE_CSS_SELECTOR).attr("style");
 				Book book = new Book(title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
-				return book;
-			}).collect(Collectors.toSet());
-			return collect;
+				books.add(book);
+			}
+			return books;
 		} catch (IOException e) {
 			e.printStackTrace();
-			return Collections.emptySet();
+			return Collections.emptyList();
 		}
 	}
 
