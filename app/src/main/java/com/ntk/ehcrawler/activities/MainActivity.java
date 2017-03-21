@@ -1,25 +1,28 @@
 package com.ntk.ehcrawler.activities;
 
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.adapters.BookAdapter;
+import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
+import com.ntk.ehcrawler.services.DatabaseService;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private RecyclerView mBooksView;
     private RecyclerView.LayoutManager mLayoutManager;
     private BookAdapter mAdapter;
+    private boolean loaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,27 +35,42 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         mAdapter = new BookAdapter(this, null);
         mBooksView.setAdapter(mAdapter);
-        getLoaderManager().initLoader(0, null, this);
+        getSupportLoaderManager().initLoader(0, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Context context = this;
-        Uri uri = null;
+        Uri uri = BookProvider.BOOKS_CONTENT_URI;
         String[] projection = BookConstants.PROJECTION;
         String selection = null;
         String[] selectionArgs = null;
         String sortOrder = null;
-        return null;
+        return new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mAdapter.swapCursor(data);
+        if(loaded){
+            //prevent second load
+            return;
+        }
+        if(data == null || data.getCount() == 0){
+            //There is data yet, should call request to download content from service
+            getNewData();
+        }else{
+
+        }
+        loaded = true;
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
+    }
+
+    private void getNewData(){
+        DatabaseService.startGetBook(this);
     }
 }

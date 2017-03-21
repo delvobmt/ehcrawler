@@ -31,7 +31,7 @@ public class EHUtils {
 	}
 
 	public static void getBookInfo(Book book) {
-		Map<String, String> cookies = CookiesHolder.get();
+		Map<String, String> cookies = prepareCookies(CookiesHolder.get());
 		String url = book.getUrl();
 		try {
 			Document doc = Jsoup.connect(url).cookies(cookies).get();
@@ -66,7 +66,7 @@ public class EHUtils {
 	}
 
 	public static List<Book> getBooks() {
-		Map<String, String> cookies = CookiesHolder.get();
+		Map<String, String> cookies = prepareCookies(CookiesHolder.get());
 		try {
 			Document doc = Jsoup.connect(EHConstants.HOST).cookies(cookies).get();
 			List<Book> books = new ArrayList<>();

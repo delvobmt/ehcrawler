@@ -20,16 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".activities.HomeActivity"
-            android:label="@string/title_activity_home"
-            android:theme="@style/AppTheme.NoActionBar" />
 
         <service
             android:name=".services.DatabaseService"
-            android:exported="false" />
-        <service
-            android:name=".services.DownloadService"
             android:exported="false" />
 
         <provider
