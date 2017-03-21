@@ -28,12 +28,12 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, Cursor cursor) {
-//        View view = holder.itemView;
-//        ImageView mImage = (ImageView) view.findViewById(R.id.image_iv);
-//        TextView mTitle = (TextView) view.findViewById(R.id.title_tv);
-//        String title = cursor.getString(BookConstants.TITLE_INDEX);
-//        String imageSrc = cursor.getString(BookConstants.IMAGE_SRC_INDEX);
-//        Picasso.with(mContext).load(imageSrc).fit().into(mImage);
-//        mTitle.setText(title);
+        View view = holder.itemView;
+        ImageView mImage = (ImageView) view.findViewById(R.id.image_iv);
+        TextView mTitle = (TextView) view.findViewById(R.id.title_tv);
+        String title = cursor.getString(BookConstants.TITLE_INDEX);
+        String imageSrc = cursor.getString(BookConstants.IMAGE_SRC_INDEX);
+        Picasso.with(mContext).load(imageSrc).into(mImage);
+        mTitle.setText(title);
     }
 }
