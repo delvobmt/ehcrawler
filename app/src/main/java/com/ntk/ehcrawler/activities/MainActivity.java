@@ -1,3 +1,4 @@
+
 package com.ntk.ehcrawler.activities;
 
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.adapters.BookAdapter;
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         mAdapter = new BookAdapter(this, null);
         mBooksView.setAdapter(mAdapter);
-        getSupportLoaderManager().initLoader(0, null, this);
+        getSupportLoaderManager().initLoader(BookProvider.BOOKS_LOADER, null, this);
     }
 
     @Override
@@ -73,4 +75,5 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void getNewData(){
         DatabaseService.startGetBook(this);
     }
+
 }

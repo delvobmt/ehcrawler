@@ -20,9 +20,13 @@ public class BookProvider extends ContentProvider {
 //            CONTENT_URI, PAGE_TABLE);
 
     private static final int BOOKS_QUERY = 1;
-    private static final int PAGES_QUERY = 2;
+    private static final int ONE_BOOK_QUERY = 2;
+    private static final int PAGES_QUERY = 3;
     private static final UriMatcher sUriMatcher;
     private static final SparseArray<String> sMimeTypes;
+    public static final int BOOKS_LOADER = 0;
+    public static final int BOOK_INFO_LOADER = 1;
+
     static {
         sUriMatcher = new UriMatcher(0);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME, BOOKS_QUERY);
@@ -30,6 +34,8 @@ public class BookProvider extends ContentProvider {
 
         sMimeTypes = new SparseArray<>();
         sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
+                + "." + BookConstants.TABLE_NAME);
+        sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_NAME);
 //        sMimeTypes.put(PAGES_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
 //                + "." + PAGE_TABLE);
@@ -124,6 +130,11 @@ public class BookProvider extends ContentProvider {
         Cursor cursor;
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
+                cursor = db.query(BookConstants.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
+            case ONE_BOOK_QUERY:
                 cursor = db.query(BookConstants.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
