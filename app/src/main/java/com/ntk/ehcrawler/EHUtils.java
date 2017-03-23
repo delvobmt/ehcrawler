@@ -1,5 +1,7 @@
 package com.ntk.ehcrawler;
 
+import android.util.Pair;
+
 import com.ntk.ehcrawler.model.Book;
 
 import org.jsoup.Connection;
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +50,22 @@ public class EHUtils {
 			Map<String, Set<String>> tagMap = new HashMap<>();
             for(Element e: doc.select(EHConstants.DETAIL_TAGLIST_CSS_SELECTOR)) {
                 String key = e.select(EHConstants.DETAIL_TAG_PRE_CSS_SELECTOR).text().replaceAll(":", "");
-                List<String> value = new ArrayList<>();
+                Set<String> value = new HashSet<>();
                 for(Element i: e.select(EHConstants.DETAIL_TAG_CSS_SELECTOR)) {
                         value.add(i.text());
                 }
-            }
+				tagMap.put(key, value);
+			}
 			book.setTagMap(tagMap);
 			//get pages
-			LinkedHashMap<String, String> pageMap = new LinkedHashMap<>();
+			LinkedHashMap<String, Pair<String,String>> pageMap = new LinkedHashMap<>();
             for(Element e: doc.select(EHConstants.PAGE_URL_CSS_SELECTOR)) {
-                String key = e.attr("href");
-                pageMap.put(key,"");
+				String style = e.parent().attr("style");
+				int from = style.indexOf("(")+1;
+				int to = style.indexOf(")");
+				String thumbSrc = style.substring(from,to);
+				String key = e.attr("href");
+                pageMap.put(key,new Pair<>(thumbSrc, ""));
             }
             book.setPageMap(pageMap);
 		} catch (Exception e) {

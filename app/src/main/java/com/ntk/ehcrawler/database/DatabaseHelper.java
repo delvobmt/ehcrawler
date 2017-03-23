@@ -11,14 +11,16 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "ehcrawler";
     public static final int DATABASE_VERSION = 1;
     public static final String SQL_CREATE_BOOK_DATABASE =
-            "CREATE TABLE "+BookConstants.TABLE_NAME
-            +" ("+BookConstants._ID+" INTEGER PRIMARY KEY,"
-            +BookConstants.TITLE+" TEXT,"
-            +BookConstants.URL+" TEXT UNIQUE,"
-            +BookConstants.IMAGE_SRC+" TEXT,"
-            +BookConstants.FILE_COUNT+" TEXT,"
-            +BookConstants.RATE+" INT,"
-            +BookConstants.TYPE+" TEXT)";
+            "CREATE TABLE " + BookConstants.TABLE_NAME
+                    + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
+                    + BookConstants.TITLE + " TEXT,"
+                    + BookConstants.URL + " TEXT UNIQUE,"
+                    + BookConstants.IMAGE_SRC + " TEXT,"
+                    + BookConstants.FILE_COUNT + " TEXT,"
+                    + BookConstants.RATE + " INT,"
+                    + BookConstants.TYPE + " TEXT,"
+                    + BookConstants.DETAIL + " TEXT,"
+                    + BookConstants.TAGS + " TEXT)";
     public static final String SQL_CLEAR_DATABASE =
             "DROP TABLE IF EXISTS "+BookConstants.TABLE_NAME;
 

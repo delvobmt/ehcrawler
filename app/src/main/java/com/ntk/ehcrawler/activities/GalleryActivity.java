@@ -9,14 +9,21 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.text.TextUtilsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
+import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Picasso;
 
 public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -39,7 +46,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                         .setAction("Action", null).show();
             }
         });
-
+        Log.d("tag", mURL);
         getSupportLoaderManager().initLoader(BookProvider.BOOK_INFO_LOADER, null, this);
     }
 
@@ -55,12 +62,36 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ImageView mCover = (ImageView) findViewById(R.id.cover_iv);
-        if(data.moveToNext()) {
-            String imageSrc = data.getString(BookConstants.IMAGE_SRC_INDEX);
-            Picasso.with(this).load(imageSrc).into(mCover);
+    public void onLoadFinished(Loader<Cursor> loader, final Cursor data) {
+        if(!data.moveToPosition(0)) return;
+        String detail = data.getString(BookConstants.DETAIL_INDEX);
+        String tags = data.getString(BookConstants.TAGS_INDEX);
+        if (TextUtils.isEmpty(detail)) {
+            getBookDetail();
+        } else {
+            final ImageView mCover = (ImageView) findViewById(R.id.cover_iv);
+            final TextView mDetail = (TextView) findViewById(R.id.details_tv);
+            final TextView mTags = (TextView) findViewById(R.id.tags_tv);
+
+            final String imageSrc = data.getString(BookConstants.IMAGE_SRC_INDEX);
+            mCover.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    final int width = mCover.getMeasuredWidth();
+                    final int height = 16*width/9;
+                    Picasso.with(mCover.getContext()).load(imageSrc).resize(width, height).centerCrop()
+                            .into(mCover);
+                    return true;
+                }
+            });
+
+            mDetail.setText(detail);
+            mTags.setText(tags);
         }
+    }
+
+    private void getBookDetail() {
+        DatabaseService.startGetBookDetail(this, mURL);
     }
 
     @Override

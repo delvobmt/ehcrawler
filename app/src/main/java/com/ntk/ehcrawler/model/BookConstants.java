@@ -17,6 +17,10 @@ public interface BookConstants extends BaseColumns {
     int RATE_INDEX = 5;
     String TYPE = "type";
     int TYPE_INDEX = 6;
+    String DETAIL = "book_info_detail";
+    int DETAIL_INDEX = 7;
+    String TAGS = "tags";
+    int TAGS_INDEX = 8;
 
     String[] PROJECTION = {
             _ID,
@@ -25,6 +29,8 @@ public interface BookConstants extends BaseColumns {
             IMAGE_SRC,
             FILE_COUNT,
             RATE,
-            TYPE
+            TYPE,
+            DETAIL,
+            TAGS
     };
 }
