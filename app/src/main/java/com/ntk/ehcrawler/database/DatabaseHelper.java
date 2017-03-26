@@ -5,12 +5,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.ntk.ehcrawler.model.BookConstants;
+import com.ntk.ehcrawler.model.PageConstants;
 
 public class DatabaseHelper extends SQLiteOpenHelper{
 
     public static final String DATABASE_NAME = "ehcrawler";
-    public static final int DATABASE_VERSION = 1;
-    public static final String SQL_CREATE_BOOK_DATABASE =
+    public static final int DATABASE_VERSION = 2;
+
+    public static final String[] SQL_CREATE_DATABASE = {
             "CREATE TABLE " + BookConstants.TABLE_NAME
                     + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
                     + BookConstants.TITLE + " TEXT,"
@@ -20,10 +22,18 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                     + BookConstants.RATE + " INT,"
                     + BookConstants.TYPE + " TEXT,"
                     + BookConstants.DETAIL + " TEXT,"
-                    + BookConstants.TAGS + " TEXT)";
-    public static final String SQL_CLEAR_DATABASE =
-            "DROP TABLE IF EXISTS "+BookConstants.TABLE_NAME;
-
+                    + BookConstants.TAGS + " TEXT)",
+            "CREATE TABLE " + PageConstants.TABLE_NAME
+                    + " (" + PageConstants._ID + " INTEGER PRIMARY KEY,"
+                    + PageConstants.BOOK_URL + " TEXT,"
+                    + PageConstants.URL + " TEXT,"
+                    + PageConstants.THUMB_SRC + " TEXT,"
+                    + PageConstants.SRC + " TEXT);"
+    };
+    public static final String[] SQL_CLEAR_DATABASE = {
+            "DROP TABLE IF EXISTS " + BookConstants.TABLE_NAME,
+            "DROP TABLE IF EXISTS " + PageConstants.TABLE_NAME
+    };
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -31,12 +41,16 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(SQL_CREATE_BOOK_DATABASE);
+        for (String sql : SQL_CREATE_DATABASE) {
+            db.execSQL(sql);
+        }
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(SQL_CLEAR_DATABASE);
+        for (String sql : SQL_CLEAR_DATABASE) {
+            db.execSQL(sql);
+        }
         onCreate(db);
     }
 

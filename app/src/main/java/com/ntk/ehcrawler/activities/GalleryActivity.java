@@ -9,26 +9,29 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.text.TextUtilsCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ntk.ehcrawler.R;
+import com.ntk.ehcrawler.adapters.ThumbAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
+import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Picasso;
 
 public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private String mURL;
+    private RecyclerView mThumbView;
+    private ThumbAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,23 +49,54 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                         .setAction("Action", null).show();
             }
         });
-        Log.d("tag", mURL);
+        mThumbView = (RecyclerView) findViewById(R.id.gallery_thumbnails_rv);
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
+        mThumbView.setLayoutManager(layoutManager);
+        mAdapter = new ThumbAdapter(this);
+        mThumbView.setAdapter(mAdapter);
         getSupportLoaderManager().initLoader(BookProvider.BOOK_INFO_LOADER, null, this);
+        getSupportLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Context context = this;
-        Uri uri = BookProvider.BOOKS_CONTENT_URI;
-        String[] projection = BookConstants.PROJECTION;
-        String selection = BookConstants.URL.concat("=?");
-        String[] selectionArgs = {mURL};
+        Uri uri = null;
+        String[] projection = null;
+        String selection = null;
+        String[] selectionArgs = null;
         String sortOrder = null;
+        switch (id){
+            case BookProvider.BOOK_INFO_LOADER:
+                uri = BookProvider.BOOKS_CONTENT_URI;
+                projection = BookConstants.PROJECTION;
+                selection = BookConstants.URL.concat("=?");
+                selectionArgs = new String[]{mURL};
+                break;
+            case BookProvider.PAGE_INFO_LOADER:
+                uri = BookProvider.PAGES_CONTENT_URI;
+                projection = PageConstants.PROJECTION;
+                selection = PageConstants.BOOK_URL.concat("=?");
+                selectionArgs = new String[]{mURL};
+                break;
+        }
         return new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, final Cursor data) {
+        switch (loader.getId()){
+            case BookProvider.BOOK_INFO_LOADER:
+                setInfoForBook(data);
+                break;
+            case BookProvider.PAGE_INFO_LOADER:
+                mAdapter.swapCursor(data);
+                break;
+        }
+
+    }
+
+    private void setInfoForBook(Cursor data) {
         if(!data.moveToPosition(0)) return;
         String detail = data.getString(BookConstants.DETAIL_INDEX);
         String tags = data.getString(BookConstants.TAGS_INDEX);

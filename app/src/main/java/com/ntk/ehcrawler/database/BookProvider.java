@@ -10,14 +10,15 @@ import android.net.Uri;
 import android.util.SparseArray;
 
 import com.ntk.ehcrawler.model.BookConstants;
+import com.ntk.ehcrawler.model.PageConstants;
 
 public class BookProvider extends ContentProvider {
     private static final String AUTHORITY = "com.ntk.ehcrawler.providers";
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final Uri BOOKS_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, BookConstants.TABLE_NAME);
-//    public static final Uri PAGES_CONTENT_URI = Uri.withAppendedPath(
-//            CONTENT_URI, PAGE_TABLE);
+    public static final Uri PAGES_CONTENT_URI = Uri.withAppendedPath(
+            CONTENT_URI, PageConstants.TABLE_NAME);
 
     private static final int BOOKS_QUERY = 1;
     private static final int ONE_BOOK_QUERY = 2;
@@ -26,19 +27,20 @@ public class BookProvider extends ContentProvider {
     private static final SparseArray<String> sMimeTypes;
     public static final int BOOKS_LOADER = 0;
     public static final int BOOK_INFO_LOADER = 1;
+    public static final int PAGE_INFO_LOADER = 2;
 
     static {
         sUriMatcher = new UriMatcher(0);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME, BOOKS_QUERY);
-//        sUriMatcher.addURI(AUTHORITY, PAGE_TABLE, PAGES_QUERY);
+        sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME, PAGES_QUERY);
 
         sMimeTypes = new SparseArray<>();
         sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_NAME);
         sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_NAME);
-//        sMimeTypes.put(PAGES_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
-//                + "." + PAGE_TABLE);
+        sMimeTypes.put(PAGES_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
+                + "." + PageConstants.TABLE_NAME);
     }
 
     private DatabaseHelper mDBHelper;
@@ -51,8 +53,8 @@ public class BookProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
                 return db.delete(BookConstants.TABLE_NAME, selection, selectionArgs);
-//            case PAGES_QUERY:
-//                return db.delete(PAGE_TABLE, selection, selectionArgs);
+            case PAGES_QUERY:
+                return db.delete(PageConstants.TABLE_NAME, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
         }
@@ -84,34 +86,44 @@ public class BookProvider extends ContentProvider {
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        int count = 0;
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
                 db.beginTransaction();
-                int numBooks = values.length;
-                for (int i = 0; i < numBooks; i++) {
+                for (ContentValues v : values) {
                     try {
-                        db.insertOrThrow(BookConstants.TABLE_NAME, null, values[i]);
+                        db.insertOrThrow(BookConstants.TABLE_NAME, null, v);
+                        count++;
                     } catch (SQLiteConstraintException e) {
                         //book url is existed, update book with new info
                         String whereClause = BookConstants.URL + "=?";
-                        String[] whereArgs = { values[i].getAsString(BookConstants.URL) };
-                        db.update(BookConstants.TABLE_NAME, values[i], whereClause, whereArgs);
+                        String[] whereArgs = { v.getAsString(BookConstants.URL) };
+                        db.update(BookConstants.TABLE_NAME, v, whereClause, whereArgs);
+                        count++;
                     }
                 }
                 db.setTransactionSuccessful();
                 db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
-                return numBooks;
-//            case PAGES_QUERY:
-//                db.beginTransaction();
-//                int numPages = values.length;
-//                for (int i = 0; i < numPages; i++) {
-//                    db.insert(PAGE_TABLE, PAGE_URL_COL, values[i]);
-//                }
-//                db.setTransactionSuccessful();
-//                db.endTransaction();
-//                getContext().getContentResolver().notifyChange(uri, null);
-//                return numPages;
+                return count;
+            case PAGES_QUERY:
+                db.beginTransaction();
+                for (ContentValues v : values) {
+                    try {
+                        db.insertOrThrow(PageConstants.TABLE_NAME, null, v);
+                        count++;
+                    } catch (SQLiteConstraintException e) {
+                        //page url is existed, update book with new info
+                        String whereClause = PageConstants.URL + "=?";
+                        String[] whereArgs = { v.getAsString(PageConstants.URL) };
+                        db.update(PageConstants.TABLE_NAME, v, whereClause, whereArgs);
+                        count++;
+                    }
+                }
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                getContext().getContentResolver().notifyChange(uri, null);
+                return count;
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
         }
@@ -139,11 +151,11 @@ public class BookProvider extends ContentProvider {
                         null, null, sortOrder);
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
-//            case PAGES_QUERY:
-//                cursor = db.query(PAGE_TABLE, projection, selection, selectionArgs,
-//                        null, null, null);
-//                cursor.setNotificationUri(getContext().getContentResolver(), uri);
-//                return cursor;
+            case PAGES_QUERY:
+                cursor = db.query(PageConstants.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, null);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
             default:
                 throw new IllegalArgumentException("Invalid uri " + uri);
         }
@@ -159,9 +171,9 @@ public class BookProvider extends ContentProvider {
                 update = db.update(BookConstants.TABLE_NAME, values, selection, selectionArgs);
                 getContext().getContentResolver().notifyChange(uri, null);
                 return update;
-//            case PAGES_QUERY:
-//                update = db.update(PAGE_TABLE, values, selection, selectionArgs);
-//                getContext().getContentResolver().notifyChange(uri, null);
+            case PAGES_QUERY:
+                update = db.update(PageConstants.TABLE_NAME, values, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(uri, null);
             default:
                 return update;
         }

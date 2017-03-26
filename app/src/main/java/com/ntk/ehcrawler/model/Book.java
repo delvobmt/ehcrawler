@@ -20,7 +20,7 @@ public class Book implements Serializable {
     private String type;
     private Map<String, String> infoMap;
     private Map<String, Set<String>> tagMap;
-    private LinkedHashMap<String, Pair<String,String>> pageMap;
+    private LinkedHashMap<String, String> pageMap;
 
     public Book() {
 
@@ -105,11 +105,11 @@ public class Book implements Serializable {
         this.tagMap = tagMap;
     }
 
-    public LinkedHashMap<String, Pair<String,String>> getPageMap() {
+    public LinkedHashMap<String, String> getPageMap() {
         return pageMap;
     }
 
-    public void setPageMap(LinkedHashMap<String, Pair<String,String>> pageMap) {
+    public void setPageMap(LinkedHashMap<String, String> pageMap) {
         this.pageMap = pageMap;
     }
 

@@ -4,7 +4,7 @@ import android.provider.BaseColumns;
 
 public interface BookConstants extends BaseColumns {
 
-    String TABLE_NAME = "Books";
+    String TABLE_NAME = "BOOKS";
     String TITLE = "title";
     int TITLE_INDEX = 1;
     String URL = "url";

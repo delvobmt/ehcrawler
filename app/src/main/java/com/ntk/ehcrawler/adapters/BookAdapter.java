@@ -20,8 +20,8 @@ import com.squareup.picasso.Picasso;
 public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHolder> {
     private final Context mContext;
 
-    public BookAdapter(Context context, Cursor cursor) {
-        super(context, cursor);
+    public BookAdapter(Context context) {
+        super(context, null);
         mContext = context;
     }
     @Override

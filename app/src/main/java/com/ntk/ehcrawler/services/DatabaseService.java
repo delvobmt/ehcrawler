@@ -4,13 +4,15 @@ import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
-import android.provider.Settings;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHUtils;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
+import com.ntk.ehcrawler.model.PageConstants;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.Set;
 public class DatabaseService extends IntentService {
     private static final String ACTION_GET_BOOKS = "GET_BOOKS";
     private static final String ACTION_GET_BOOK_DETAILS = "GET_BOOK_DETAILS";
+    private static final String ACTION_GET_BOOK_IMAGE = "GET_BOOK_IMAGE";
 
     public static final String EXTRA_URL = "URL";
 
@@ -39,6 +42,14 @@ public class DatabaseService extends IntentService {
         context.startService(intent);
     }
 
+
+    public static void startGetBookImageSrc(Context context, String url) {
+        Intent intent = new Intent(context, DatabaseService.class);
+        intent.setAction(ACTION_GET_BOOK_IMAGE);
+        intent.putExtra(EXTRA_URL, url);
+        context.startService(intent);
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
@@ -48,14 +59,31 @@ public class DatabaseService extends IntentService {
             }else if (ACTION_GET_BOOK_DETAILS.equals(action)){
                 String url = intent.getStringExtra(EXTRA_URL);
                 getBookDetail(url);
+            } else if (ACTION_GET_BOOK_IMAGE.equals(action)) {
+                String url = intent.getStringExtra(EXTRA_URL);
+                getPageImageSrc(url);
             }
         }
+    }
+
+    private void getPageImageSrc(String url) {
+        String pageImageUrl = EHUtils.getPageImageSrc(url);
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(PageConstants.SRC, pageImageUrl);
+        String selection = PageConstants.URL+"=?";
+        String[] selectionArgs = {url};
+        getContentResolver().update(BookProvider.PAGES_CONTENT_URI, contentValues, selection, selectionArgs);
     }
 
     private void getBookDetail(String url) {
         Book book = new Book();
         book.setUrl(url);
-        EHUtils.getBookInfo(book);
+        try {
+            EHUtils.getBookInfo(book);
+        } catch (IOException e) {
+            //TODO: REPORT UI
+            return;
+        }
         Map<String, String> infoMap = book.getInfoMap();
         StringBuilder infoBuilder = new StringBuilder();
         for(String key: infoMap.keySet()){
@@ -77,13 +105,26 @@ public class DatabaseService extends IntentService {
             }
             tagsBuilder.append(System.getProperty("line.separator"));
         }
-        Map<String, String> pageMap = book.getPageMap();
+
         ContentValues contentValues = new ContentValues();
         contentValues.put(BookConstants.DETAIL, infoBuilder.toString());
         contentValues.put(BookConstants.TAGS, tagsBuilder.toString());
-        String selection = "url=?";
+        String selection = BookConstants.URL+"=?";
         String[] selectionArgs = {url};
         getContentResolver().update(BookProvider.BOOKS_CONTENT_URI, contentValues, selection, selectionArgs);
+        //insert page info
+        Map<String, String> pageMap = book.getPageMap();
+        ContentValues[] pageValues = new ContentValues[pageMap.size()];
+        int i = 0;
+        for(String pageUrl : pageMap.keySet()){
+            String thumbSrc = pageMap.get(pageUrl);
+            pageValues[i] = new ContentValues();
+            pageValues[i].put(PageConstants.BOOK_URL, url);
+            pageValues[i].put(PageConstants.URL, pageUrl);
+            pageValues[i].put(PageConstants.THUMB_SRC, thumbSrc);
+            i++;
+        }
+        getContentResolver().bulkInsert(BookProvider.PAGES_CONTENT_URI, pageValues);
     }
 
     private void getBooks() {
