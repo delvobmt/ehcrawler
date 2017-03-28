@@ -90,7 +90,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                 setInfoForBook(data);
                 break;
             case BookProvider.PAGE_INFO_LOADER:
-                mAdapter.swapCursor(data);
+                mAdapter.changeCursor(data);
                 break;
         }
 
