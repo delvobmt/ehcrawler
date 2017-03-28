@@ -3,7 +3,6 @@ package com.ntk.ehcrawler.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;
-import android.provider.BaseColumns;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -32,12 +31,12 @@ public abstract class CursorPagerViewAdapter extends FragmentStatePagerAdapter {
     @Override
     public Fragment getItem(int position) {
         if (mDataValid && mCursor != null && mCursor.moveToPosition(position)) {
-            return getItemFragemnt(mCursor);
+            return getItemFragment(mCursor);
         }
         return null;
     }
 
-    public abstract Fragment getItemFragemnt(Cursor data);
+    public abstract Fragment getItemFragment(Cursor data);
 
     @Override
     public int getCount() {

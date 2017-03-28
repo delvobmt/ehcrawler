@@ -35,7 +35,7 @@ public class EHUtils {
 		Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
 		String url = book.getUrl();
 		Document doc = Jsoup.connect(url).cookies(cookies).get();
-		//getCookies detail info
+		//get detail info
 		Map<String, String> detailMap = new HashMap<>();
 		for (Element e : doc.select(EHConstants.DETAIL_CSS_SELECTOR)) {
 			String key = e.select(EHConstants.DETAIL_KEY_CSS_SELECTOR).text().replaceAll(":", "");
@@ -43,7 +43,7 @@ public class EHUtils {
 			detailMap.put(key, value);
 		}
 		book.setInfoMap(detailMap);
-		//getCookies taglist
+		//get taglist
 		Map<String, Set<String>> tagMap = new HashMap<>();
 		for (Element e : doc.select(EHConstants.DETAIL_TAGLIST_CSS_SELECTOR)) {
 			String key = e.select(EHConstants.DETAIL_TAG_PRE_CSS_SELECTOR).text().replaceAll(":", "");
@@ -54,7 +54,7 @@ public class EHUtils {
 			tagMap.put(key, value);
 		}
 		book.setTagMap(tagMap);
-		//getCookies pages
+		//get pages
 		LinkedHashMap<String, String> pageMap = new LinkedHashMap<>();
 		for (Element e : doc.select(EHConstants.PAGE_URL_CSS_SELECTOR)) {
 			String style = e.parent().attr("style");

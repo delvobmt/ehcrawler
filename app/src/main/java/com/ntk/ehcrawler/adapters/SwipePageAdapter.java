@@ -2,6 +2,7 @@ package com.ntk.ehcrawler.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
@@ -16,12 +17,14 @@ public class SwipePageAdapter extends CursorPagerViewAdapter {
     }
 
     @Override
-    public Fragment getItemFragemnt(Cursor data) {
+    public Fragment getItemFragment(Cursor data) {
         PageFragment fragment = new PageFragment();
-        String imageSrc = data.getString(PageConstants.SRC_INDEX);
+        String imageSrc = data.getString(PageConstants.URL_INDEX);
         if(TextUtils.isEmpty(imageSrc)){
-            String url = data.getString(PageConstants.BOOK_URL_INDEX);
-            DatabaseService.startGetBookImageSrc(mContext, url);
+            DatabaseService.startGetBookDetail(mContext, data.getString(PageConstants.URL_INDEX));
+        }else {
+            fragment.setArguments(new Bundle());
+            fragment.getArguments().putString(PageConstants.SRC, imageSrc);
         }
         return fragment;
     }
