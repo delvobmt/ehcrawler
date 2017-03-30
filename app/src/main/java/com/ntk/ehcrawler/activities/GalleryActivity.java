@@ -32,12 +32,14 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     private String mURL;
     private RecyclerView mThumbView;
     private ThumbAdapter mAdapter;
+    private String mId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
         mURL = getIntent().getStringExtra(BookConstants.URL);
+        mId = getIntent().getStringExtra(BookConstants._ID);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -68,7 +70,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         String sortOrder = null;
         switch (id){
             case BookProvider.BOOK_INFO_LOADER:
-                uri = BookProvider.BOOKS_CONTENT_URI;
+                uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, mId);
                 projection = BookConstants.PROJECTION;
                 selection = BookConstants.URL.concat("=?");
                 selectionArgs = new String[]{mURL};
@@ -97,7 +99,8 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     }
 
     private void setInfoForBook(Cursor data) {
-        if(!data.moveToPosition(0)) return;
+        if(!data.moveToFirst()) return;
+        mId = data.getString(0);
         String detail = data.getString(BookConstants.DETAIL_INDEX);
         String tags = data.getString(BookConstants.TAGS_INDEX);
         if (TextUtils.isEmpty(detail)) {
@@ -125,7 +128,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     }
 
     private void getBookDetail() {
-        DatabaseService.startGetBookDetail(this, mURL);
+        DatabaseService.startGetBookDetail(this, mId, mURL);
     }
 
     @Override

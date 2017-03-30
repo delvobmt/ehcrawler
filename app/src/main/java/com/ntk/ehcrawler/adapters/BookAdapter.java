@@ -40,6 +40,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
 
         String title = cursor.getString(BookConstants.TITLE_INDEX);
         String imageSrc = cursor.getString(BookConstants.IMAGE_SRC_INDEX);
+        final String id = cursor.getString(0);
         final String url = cursor.getString(BookConstants.URL_INDEX);
         String type = cursor.getString(BookConstants.TYPE_INDEX);
         int fileCount = cursor.getInt(BookConstants.FILE_COUNT_INDEX);
@@ -55,6 +56,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, GalleryActivity.class);
                 intent.putExtra(BookConstants.URL, url);
+                intent.putExtra(BookConstants._ID, id);
                 mContext.startActivity(intent);
             }
         });

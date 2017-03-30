@@ -5,11 +5,9 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.text.TextUtils;
 
 import com.ntk.ehcrawler.fragments.PageFragment;
 import com.ntk.ehcrawler.model.PageConstants;
-import com.ntk.ehcrawler.services.DatabaseService;
 
 public class SwipePageAdapter extends CursorPagerViewAdapter {
     public SwipePageAdapter(Context context, FragmentManager fm) {
@@ -19,13 +17,13 @@ public class SwipePageAdapter extends CursorPagerViewAdapter {
     @Override
     public Fragment getItemFragment(Cursor data) {
         PageFragment fragment = new PageFragment();
-        String imageSrc = data.getString(PageConstants.URL_INDEX);
-        if(TextUtils.isEmpty(imageSrc)){
-            DatabaseService.startGetBookDetail(mContext, data.getString(PageConstants.URL_INDEX));
-        }else {
-            fragment.setArguments(new Bundle());
-            fragment.getArguments().putString(PageConstants.SRC, imageSrc);
-        }
+        fragment.setArguments(new Bundle());
+        String id = data.getString(0);
+        String src = data.getString(PageConstants.SRC_INDEX);
+        String url = data.getString(PageConstants.URL_INDEX);
+        fragment.getArguments().putString(PageConstants.SRC, src);
+        fragment.getArguments().putString(PageConstants.URL, url);
+        fragment.getArguments().putString(PageConstants._ID, id);
         return fragment;
     }
 }

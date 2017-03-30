@@ -41,9 +41,11 @@ public class ThumbAdapter extends CursorRecyclerViewAdapter{
                 final int height = bitmap.getHeight();
                 final int x = width*offset;
                 final int y = 0;
-                Bitmap image = Bitmap.createBitmap(bitmap, x, y, width, height);
-                mThumb.setImageBitmap(image);
-                mLoading.setVisibility(View.GONE);
+                if(x+width<=bitmap.getWidth()){
+                    Bitmap image = Bitmap.createBitmap(bitmap, x, y, width, height);
+                    mThumb.setImageBitmap(image);
+                    mLoading.setVisibility(View.GONE);
+                }
             }
 
             @Override

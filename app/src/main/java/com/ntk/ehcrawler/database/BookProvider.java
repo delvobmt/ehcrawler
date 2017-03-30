@@ -22,6 +22,8 @@ public class BookProvider extends ContentProvider {
 
     private static final int BOOKS_QUERY = 1;
     private static final int PAGES_QUERY = 2;
+    private static final int ONE_BOOK_QUERY = 3;
+    private static final int ONE_PAGE_QUERY = 4;
     private static final UriMatcher sUriMatcher;
     private static final SparseArray<String> sMimeTypes;
     public static final int BOOKS_LOADER = 0;
@@ -32,17 +34,23 @@ public class BookProvider extends ContentProvider {
         sUriMatcher = new UriMatcher(0);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME, BOOKS_QUERY);
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME, PAGES_QUERY);
+        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME+"/#", ONE_BOOK_QUERY);
+        sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME+"/#", ONE_PAGE_QUERY);
 
         sMimeTypes = new SparseArray<>();
         sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_NAME);
         sMimeTypes.put(PAGES_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
                 + "." + PageConstants.TABLE_NAME);
+        sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
+                + "." + BookConstants.TABLE_NAME);
+        sMimeTypes.put(ONE_PAGE_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
+                + "." + PageConstants.TABLE_NAME);
     }
 
     private DatabaseHelper mDBHelper;
     private SQLiteDatabase readableDB;
-    private SQLiteDatabase writebleDB;
+    private SQLiteDatabase writableDB;
 
     public BookProvider() {
     }
@@ -51,9 +59,9 @@ public class BookProvider extends ContentProvider {
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
-                return writebleDB.delete(BookConstants.TABLE_NAME, selection, selectionArgs);
+                return writableDB.delete(BookConstants.TABLE_NAME, selection, selectionArgs);
             case PAGES_QUERY:
-                return writebleDB.delete(PageConstants.TABLE_NAME, selection, selectionArgs);
+                return writableDB.delete(PageConstants.TABLE_NAME, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
         }
@@ -69,12 +77,12 @@ public class BookProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
                 try {
-                    writebleDB.insertOrThrow(BookConstants.TABLE_NAME, null, values);
+                    writableDB.insertOrThrow(BookConstants.TABLE_NAME, null, values);
                 } catch (SQLiteConstraintException e) {
                     //book url is existed, update book with new info
                     String whereClause = BookConstants.URL + "=?";
                     String[] whereArgs = { values.getAsString(BookConstants.URL) };
-                    writebleDB.update(BookConstants.TABLE_NAME, values, whereClause, whereArgs);
+                    writableDB.update(BookConstants.TABLE_NAME, values, whereClause, whereArgs);
                 }
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
@@ -86,39 +94,39 @@ public class BookProvider extends ContentProvider {
         int count = 0;
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
-                writebleDB.beginTransaction();
+                writableDB.beginTransaction();
                 for (ContentValues v : values) {
                     try {
-                        writebleDB.insertOrThrow(BookConstants.TABLE_NAME, null, v);
+                        writableDB.insertOrThrow(BookConstants.TABLE_NAME, null, v);
                         count++;
                     } catch (SQLiteConstraintException e) {
                         //book url is existed, update book with new info
                         String whereClause = BookConstants.URL + "=?";
                         String[] whereArgs = { v.getAsString(BookConstants.URL) };
-                        writebleDB.update(BookConstants.TABLE_NAME, v, whereClause, whereArgs);
+                        writableDB.update(BookConstants.TABLE_NAME, v, whereClause, whereArgs);
                         count++;
                     }
                 }
-                writebleDB.setTransactionSuccessful();
-                writebleDB.endTransaction();
+                writableDB.setTransactionSuccessful();
+                writableDB.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
                 return count;
             case PAGES_QUERY:
-                writebleDB.beginTransaction();
+                writableDB.beginTransaction();
                 for (ContentValues v : values) {
                     try {
-                        writebleDB.insertOrThrow(PageConstants.TABLE_NAME, null, v);
+                        writableDB.insertOrThrow(PageConstants.TABLE_NAME, null, v);
                         count++;
                     } catch (SQLiteConstraintException e) {
                         //page url is existed, update book with new info
                         String whereClause = PageConstants.URL + "=?";
                         String[] whereArgs = { v.getAsString(PageConstants.URL) };
-                        writebleDB.update(PageConstants.TABLE_NAME, v, whereClause, whereArgs);
+                        writableDB.update(PageConstants.TABLE_NAME, v, whereClause, whereArgs);
                         count++;
                     }
                 }
-                writebleDB.setTransactionSuccessful();
-                writebleDB.endTransaction();
+                writableDB.setTransactionSuccessful();
+                writableDB.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
                 return count;
             default:
@@ -130,7 +138,7 @@ public class BookProvider extends ContentProvider {
     public boolean onCreate() {
         mDBHelper = new DatabaseHelper(getContext());
         readableDB = mDBHelper.getReadableDatabase();
-        writebleDB = mDBHelper.getWritableDatabase();
+        writableDB = mDBHelper.getWritableDatabase();
         return true;
     }
 
@@ -144,9 +152,19 @@ public class BookProvider extends ContentProvider {
                         null, null, sortOrder);
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
+            case ONE_BOOK_QUERY:
+                cursor = readableDB.query(BookConstants.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder,"1");
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
             case PAGES_QUERY:
                 cursor = readableDB.query(PageConstants.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
+            case ONE_PAGE_QUERY:
+                cursor = readableDB.query(PageConstants.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
             default:
@@ -160,11 +178,13 @@ public class BookProvider extends ContentProvider {
         int update = -1;
         switch (sUriMatcher.match(uri)) {
             case BOOKS_QUERY:
-                update = writebleDB.update(BookConstants.TABLE_NAME, values, selection, selectionArgs);
+            case ONE_BOOK_QUERY:
+                update = writableDB.update(BookConstants.TABLE_NAME, values, selection, selectionArgs);
                 getContext().getContentResolver().notifyChange(uri, null);
                 return update;
             case PAGES_QUERY:
-                update = writebleDB.update(PageConstants.TABLE_NAME, values, selection, selectionArgs);
+            case ONE_PAGE_QUERY:
+                update = writableDB.update(PageConstants.TABLE_NAME, values, selection, selectionArgs);
                 getContext().getContentResolver().notifyChange(uri, null);
             default:
                 return update;

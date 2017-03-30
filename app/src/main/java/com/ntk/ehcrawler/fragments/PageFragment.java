@@ -26,10 +26,13 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
-public class PageFragment extends Fragment{
+public class PageFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private ImageView mImage;
     private View mLoading;
+    private String mUrl;
+    private String mSrc;
+    private String mId;
 
     public PageFragment() {
         // Required empty public constructor
@@ -41,9 +44,14 @@ public class PageFragment extends Fragment{
         View view = inflater.inflate(R.layout.page_view, null);
         mImage = (ImageView) view.findViewById(R.id.image_iv);
         mLoading = view.findViewById(R.id.loading);
-        String imageSrc = getArguments().getString(PageConstants.SRC);
-        if(!TextUtils.isEmpty(imageSrc)){
-            bindView(imageSrc);
+        mSrc = getArguments().getString(PageConstants.SRC);
+        mUrl = getArguments().getString(PageConstants.URL);
+        mId = getArguments().getString(PageConstants._ID);
+        if(!TextUtils.isEmpty(mSrc)){
+            bindView(mSrc);
+        }else{
+            DatabaseService.startGetBookImageSrc(getContext(), mId, mUrl);
+            getLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
         }
         return view;
     }
@@ -90,5 +98,30 @@ public class PageFragment extends Fragment{
 
             }
         });
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, mId);
+        String[] projection = PageConstants.PROJECTION;
+        String selection = PageConstants.URL+"=?";
+        String[] selectionArgs = {mUrl};
+        String sortOrder = null;
+        return new CursorLoader(getContext(), uri, projection, selection, selectionArgs, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if(data.moveToFirst()) {
+            mSrc = data.getString(PageConstants.SRC_INDEX);
+            if (!TextUtils.isEmpty(mSrc)) {
+                bindView(mSrc);
+            }
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 }
