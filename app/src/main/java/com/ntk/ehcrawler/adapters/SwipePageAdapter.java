@@ -6,21 +6,34 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
+import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.fragments.PageFragment;
 import com.ntk.ehcrawler.model.PageConstants;
+import com.ntk.ehcrawler.services.DatabaseService;
 
 public class SwipePageAdapter extends CursorPagerViewAdapter {
-    public SwipePageAdapter(Context context, FragmentManager fm) {
+
+    private final int mSize;
+
+    public SwipePageAdapter(Context context, FragmentManager fm, int size) {
         super(context, fm, null);
+        this.mSize = size;
     }
 
     @Override
-    public Fragment getItemFragment(Cursor data) {
+    public Fragment getItemFragment(Cursor cursor) {
         PageFragment fragment = new PageFragment();
         fragment.setArguments(new Bundle());
-        String id = data.getString(0);
-        String src = data.getString(PageConstants.SRC_INDEX);
-        String url = data.getString(PageConstants.URL_INDEX);
+        final String id = cursor.getString(0);
+        final String src = cursor.getString(PageConstants.SRC_INDEX);
+        final String url = cursor.getString(PageConstants.URL_INDEX);
+        int position = cursor.getPosition()+1;
+        int count = cursor.getCount();
+        final String bookUrl = cursor.getString(PageConstants.BOOK_URL_INDEX);
+        if (position == count && count < mSize) {
+            int pageIndex = (position / EHConstants.PAGES_PER_PAGE) + 1;
+            DatabaseService.startGetBookDetail(mContext, id, bookUrl, String.valueOf(pageIndex));
+        }
         fragment.getArguments().putString(PageConstants.SRC, src);
         fragment.getArguments().putString(PageConstants.URL, url);
         fragment.getArguments().putString(PageConstants._ID, id);

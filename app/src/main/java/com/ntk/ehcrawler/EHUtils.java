@@ -31,10 +31,15 @@ public class EHUtils {
 		}
 	}
 
-	public static void getBookInfo(Book book) throws IOException {
+	public static void getBookInfo(String url, String pageIndex) throws IOException {
+		Book book = new Book();
+		book.setUrl(url);
+		getBookInfo(book, pageIndex);
+	}
+	public static void getBookInfo(Book book, String pageIndex) throws IOException {
 		Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
 		String url = book.getUrl();
-		Document doc = Jsoup.connect(url).cookies(cookies).get();
+		Document doc = Jsoup.connect(url).data(EHConstants.PAGE_PAGE_PARAM, pageIndex).cookies(cookies).get();
 		//get detail info
 		Map<String, String> detailMap = new HashMap<>();
 		for (Element e : doc.select(EHConstants.DETAIL_CSS_SELECTOR)) {
@@ -67,10 +72,10 @@ public class EHUtils {
 		book.setPageMap(pageMap);
 	}
 
-	public static List<Book> getBooks() {
+	public static List<Book> getBooks(String pageIndex) {
 		Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
 		try {
-			Document doc = Jsoup.connect(EHConstants.HOST).cookies(cookies).get();
+			Document doc = Jsoup.connect(EHConstants.HOST).data(EHConstants.BOOK_PAGE_PARAM, pageIndex).cookies(cookies).get();
 			List<Book> books = new ArrayList<>();
             for(Element e: doc.select(EHConstants.ITEM_CSS_SELECTOR)){
 				String title = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).text();

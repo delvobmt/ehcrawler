@@ -1,6 +1,7 @@
 package com.ntk.ehcrawler.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,13 +34,16 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     private RecyclerView mThumbView;
     private ThumbAdapter mAdapter;
     private String mId;
+    private View mLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
-        mURL = getIntent().getStringExtra(BookConstants.URL);
-        mId = getIntent().getStringExtra(BookConstants._ID);
+        Intent intent = getIntent();
+        mURL = intent.getStringExtra(BookConstants.URL);
+        mId = intent.getStringExtra(BookConstants._ID);
+        int bookSize = intent.getIntExtra(BookConstants.FILE_COUNT, 0);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -54,8 +58,11 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         mThumbView = (RecyclerView) findViewById(R.id.gallery_thumbnails_rv);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
         mThumbView.setLayoutManager(layoutManager);
-        mAdapter = new ThumbAdapter(this);
+        mAdapter = new ThumbAdapter(this, bookSize);
         mThumbView.setAdapter(mAdapter);
+
+        mLoading = findViewById(R.id.loading);
+
         getSupportLoaderManager().initLoader(BookProvider.BOOK_INFO_LOADER, null, this);
         getSupportLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
     }
@@ -124,6 +131,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
 
             mDetail.setText(detail);
             mTags.setText(tags);
+            mLoading.setVisibility(View.GONE);
         }
     }
 

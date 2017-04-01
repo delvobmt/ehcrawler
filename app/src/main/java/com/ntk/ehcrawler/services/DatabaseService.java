@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.EHUtils;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
@@ -28,16 +29,25 @@ public class DatabaseService extends IntentService {
     }
 
     public static void startGetBook(Context context) {
+        startGetBook(context, "0");
+    }
+
+    public static void startGetBook(Context context, String pageIndex) {
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_GET_BOOKS);
+        intent.putExtra(EHConstants.PAGE_INDEX, pageIndex);
         context.startService(intent);
     }
 
     public static void startGetBookDetail(Context context, String id, String url) {
+        startGetBookDetail(context, id, url, "0");
+    }
+    public static void startGetBookDetail(Context context, String id, String url, String pageIndex) {
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_GET_BOOK_DETAILS);
         intent.putExtra(BookConstants._ID, id);
         intent.putExtra(BookConstants.URL, url);
+        intent.putExtra(EHConstants.PAGE_INDEX, pageIndex);
         context.startService(intent);
     }
 
@@ -55,11 +65,13 @@ public class DatabaseService extends IntentService {
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_GET_BOOKS.equals(action)) {
-                getBooks();
+                String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
+                getBooks(pageIndex);
             } else if (ACTION_GET_BOOK_DETAILS.equals(action)) {
+                String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
                 String id = intent.getStringExtra(BookConstants._ID);
                 String url = intent.getStringExtra(BookConstants.URL);
-                getBookDetail(id, url);
+                getBookDetail(id, url, pageIndex);
             } else if (ACTION_GET_BOOK_IMAGE.equals(action)) {
                 String id = intent.getStringExtra(PageConstants._ID);
                 String url = intent.getStringExtra(PageConstants.URL);
@@ -78,44 +90,46 @@ public class DatabaseService extends IntentService {
         getContentResolver().update(uri, contentValues, selection, selectionArgs);
     }
 
-    private void getBookDetail(String id, String url) {
+    private void getBookDetail(String id, String url, String pageIndex) {
         Book book = new Book();
         book.setUrl(url);
         try {
-            EHUtils.getBookInfo(book);
+            EHUtils.getBookInfo(book, pageIndex);
         } catch (IOException e) {
             //TODO: REPORT UI
             return;
         }
-        Map<String, String> infoMap = book.getInfoMap();
-        StringBuilder infoBuilder = new StringBuilder();
-        for (String key : infoMap.keySet()) {
-            infoBuilder.append(key).append(":").append(infoMap.get(key));
-            infoBuilder.append(System.getProperty("line.separator"));
-        }
-        Map<String, Set<String>> tagMap = book.getTagMap();
-        StringBuilder tagsBuilder = new StringBuilder();
-        for (String key : tagMap.keySet()) {
-            tagsBuilder.append(key);
-            tagsBuilder.append(":");
-            Set<String> tags = tagMap.get(key);
-            Iterator<String> iterator = tags.iterator();
-            while (iterator.hasNext()) {
-                tagsBuilder.append(iterator.next());
-                if (iterator.hasNext()) {
-                    tagsBuilder.append(",");
-                }
+        if("0".equals(pageIndex)) {
+            Map<String, String> infoMap = book.getInfoMap();
+            StringBuilder infoBuilder = new StringBuilder();
+            for (String key : infoMap.keySet()) {
+                infoBuilder.append(key).append(":").append(infoMap.get(key));
+                infoBuilder.append(System.getProperty("line.separator"));
             }
-            tagsBuilder.append(System.getProperty("line.separator"));
-        }
+            Map<String, Set<String>> tagMap = book.getTagMap();
+            StringBuilder tagsBuilder = new StringBuilder();
+            for (String key : tagMap.keySet()) {
+                tagsBuilder.append(key);
+                tagsBuilder.append(":");
+                Set<String> tags = tagMap.get(key);
+                Iterator<String> iterator = tags.iterator();
+                while (iterator.hasNext()) {
+                    tagsBuilder.append(iterator.next());
+                    if (iterator.hasNext()) {
+                        tagsBuilder.append(",");
+                    }
+                }
+                tagsBuilder.append(System.getProperty("line.separator"));
+            }
 
-        Uri uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(BookConstants.DETAIL, infoBuilder.toString());
-        contentValues.put(BookConstants.TAGS, tagsBuilder.toString());
-        String selection = BookConstants.URL + "=?";
-        String[] selectionArgs = {url};
-        getContentResolver().update(uri, contentValues, selection, selectionArgs);
+            Uri uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(BookConstants.DETAIL, infoBuilder.toString());
+            contentValues.put(BookConstants.TAGS, tagsBuilder.toString());
+            String selection = BookConstants.URL + "=?";
+            String[] selectionArgs = {url};
+            getContentResolver().update(uri, contentValues, selection, selectionArgs);
+        }
         //insert page info
         Map<String, String> pageMap = book.getPageMap();
         ContentValues[] pageValues = new ContentValues[pageMap.size()];
@@ -131,8 +145,8 @@ public class DatabaseService extends IntentService {
         getContentResolver().bulkInsert(BookProvider.PAGES_CONTENT_URI, pageValues);
     }
 
-    private void getBooks() {
-        List<Book> books = EHUtils.getBooks();
+    private void getBooks(String pageIndex) {
+        List<Book> books = EHUtils.getBooks(pageIndex);
         ContentValues[] valuesArray = new ContentValues[books.size()];
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
@@ -143,6 +157,9 @@ public class DatabaseService extends IntentService {
             valuesArray[i].put(BookConstants.FILE_COUNT, book.getFileCount());
             valuesArray[i].put(BookConstants.RATE, book.getRate());
             valuesArray[i].put(BookConstants.TYPE, book.getType());
+        }
+        if("0".equals(pageIndex)) {
+            getContentResolver().delete(BookProvider.BOOKS_CONTENT_URI, null, null);
         }
         getContentResolver().bulkInsert(BookProvider.BOOKS_CONTENT_URI, valuesArray);
     }

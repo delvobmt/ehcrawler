@@ -11,28 +11,42 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.activities.FullscreenActivity;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
+import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 public class ThumbAdapter extends CursorRecyclerViewAdapter{
 
     private final Context mContext;
+    private final int mSize;
 
-    public ThumbAdapter(Context context) {
+    public ThumbAdapter(Context context, int size) {
         super(context, null);
         this.mContext = context;
+        this.mSize = size;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, Cursor cursor) {
-        View view = viewHolder.itemView;
+        final int position = cursor.getPosition();
+        final int count = cursor.getCount();
+        final String id = cursor.getString(0);
+        final String url = cursor.getString(PageConstants.BOOK_URL_INDEX);
+        final String thumbSrc = cursor.getString(PageConstants.THUMB_SRC_INDEX);
+        if (position + 1 == count && count < mSize) {
+            int pageIndex = (position / EHConstants.PAGES_PER_PAGE) + 1;
+            DatabaseService.startGetBookDetail(mContext, id, url, String.valueOf(pageIndex));
+        }
+
+        final View view = viewHolder.itemView;
         final ImageView mThumb = (ImageView) view.findViewById(R.id.thumb_iv);
         final View mLoading = view.findViewById(R.id.loading);
-        String thumbSrc = cursor.getString(PageConstants.THUMB_SRC_INDEX);
+
         final int offset = cursor.getPosition() % 20;
         Target target = new Target() {
             @Override
@@ -62,12 +76,13 @@ public class ThumbAdapter extends CursorRecyclerViewAdapter{
         mThumb.setTag(target);
         Picasso.with(mContext).load(thumbSrc).into(target);
 
-        final String url = cursor.getString(PageConstants.BOOK_URL_INDEX);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, FullscreenActivity.class);
-                intent.putExtra(PageConstants.URL, url);
+                intent.putExtra(BookConstants.URL, url);
+                intent.putExtra(BookConstants.FILE_COUNT, mSize);
+                intent.putExtra(EHConstants.POSITION, position);
                 mContext.startActivity(intent);
             }
         });

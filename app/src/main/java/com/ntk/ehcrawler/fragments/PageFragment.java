@@ -75,7 +75,7 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
             public Bitmap transform(Bitmap source) {
                 double aspectRatio = (double) source.getHeight() / (double) source.getWidth();
                 int imageHeight = (int) (imageWidth * aspectRatio);
-                Bitmap result = Bitmap.createScaledBitmap(source, imageWidth, imageHeight, false);
+                Bitmap result = Bitmap.createScaledBitmap(source, imageWidth, imageHeight, true);
                 if (result != source) {
                     source.recycle();
                 }
@@ -87,7 +87,9 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
                 return imageSrc;
             }
         };
-        Picasso.with(getContext()).load(imageSrc).transform(transformation).into(mImage, new Callback() {
+        Picasso.with(getContext()).load(imageSrc)
+                .transform(transformation)
+                .into(mImage, new Callback() {
             @Override
             public void onSuccess() {
                 mLoading.setVisibility(View.GONE);

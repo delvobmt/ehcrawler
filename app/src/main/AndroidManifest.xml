@@ -33,14 +33,17 @@
 
         <activity
             android:name=".activities.GalleryActivity"
-            android:label="@string/title_activity_gallery"
+            android:label=""
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activities.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_fullscreen"
-            android:theme="@style/FullscreenTheme"
-            android:screenOrientation="landscape"></activity>
+            android:label=""
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activities.SearchActivity"
+            android:label="@string/title_activity_search"></activity>
     </application>
 
 </manifest>
