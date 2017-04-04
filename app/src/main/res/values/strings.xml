@@ -21,13 +21,18 @@
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
+    <string name="pref_title_f_doujinshi">Show doujinshi</string>
+    <string name="pref_title_f_manga">Show Manga</string>
+    <string name="pref_title_f_artistcg">Show Artist CG</string>
+    <string name="pref_title_f_gamecg">Show Game CG</string>
+    <string name="pref_title_f_western">Show Western</string>
+    <string name="pref_title_f_non_h">Show Non Hentai</string>
+    <string name="pref_title_f_imageset">Show Image Set</string>
+    <string name="pref_title_f_cosplay">Show Cosplay</string>
+    <string name="pref_title_f_asianporn">Show Asian Porn</string>
+    <string name="pref_title_f_misc">Show Misc</string>
 
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
+    <string name="pref_title_search_key">Search Key</string>
 
     <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
     <string-array name="pref_example_list_titles">

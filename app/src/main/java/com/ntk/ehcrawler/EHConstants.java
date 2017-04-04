@@ -11,8 +11,8 @@ public interface EHConstants {
 	String SEARCH_NON_HENTAI_KEY = "f_non-h";
 	String SEARCH_IMAGESET_KEY = "f_imageset";
 	String SEARCH_COSPLAY_KEY = "f_cosplay";
-	String SEARCH_ASIA_PORN_KEY = "f_asianporn";
-	String SRARCH_MISC_KEY = "f_misc";
+	String SEARCH_ASIANPORN_KEY = "f_asianporn";
+	String SEARCH_MISC_KEY = "f_misc";
 	String SEARCH_KEY = "f_search";
 
 	String ITEM_CSS_SELECTOR = ".id1";
@@ -46,5 +46,5 @@ public interface EHConstants {
 	String PAGE_PAGE_PARAM = "p";
 	String POSITION = "position";
 
-
+	String SEARCH_PREFERENCES = "search_references";
 }

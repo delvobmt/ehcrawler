@@ -1,0 +1,50 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:capitalize="words"
+        android:inputType="textCapWords"
+        android:key="f_search"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_search_key" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_doujinshi"
+        android:title="@string/pref_title_f_doujinshi" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_manga"
+        android:title="@string/pref_title_f_manga" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_artistcg"
+        android:title="@string/pref_title_f_artistcg" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_gamecg"
+        android:title="@string/pref_title_f_gamecg" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_non-h"
+        android:title="@string/pref_title_f_non_h" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_western"
+        android:title="@string/pref_title_f_western" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_imageset"
+        android:title="@string/pref_title_f_imageset" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_cosplay"
+        android:title="@string/pref_title_f_cosplay" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_asianporn"
+        android:title="@string/pref_title_f_asianporn" />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="f_misc"
+        android:title="@string/pref_title_f_misc" />
+</PreferenceScreen>
