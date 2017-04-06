@@ -1,5 +1,7 @@
 package com.ntk.ehcrawler;
 
+import android.util.Log;
+
 import com.ntk.ehcrawler.model.Book;
 
 import org.jsoup.Connection;
@@ -72,10 +74,18 @@ public class EHUtils {
 		book.setPageMap(pageMap);
 	}
 
-	public static List<Book> getBooks(String pageIndex) {
+	public static List<Book> getBooks(String pageIndex, Map<String, String> filters) {
 		Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
 		try {
-			Document doc = Jsoup.connect(EHConstants.HOST).data(EHConstants.BOOK_PAGE_PARAM, pageIndex).cookies(cookies).get();
+			Connection connection = Jsoup.connect(EHConstants.HOST);
+			if (!"0".equals(pageIndex)) {
+				connection.data(EHConstants.BOOK_PAGE_PARAM, pageIndex);
+			}
+			if(filters != null && !filters.equals(Collections.<String, String>emptyMap())){
+				filters.put(EHConstants.SEARCH_APPLY_KEY, EHConstants.SEARCH_APPLY_VALUE);
+				connection.data(filters);
+			}
+			Document doc = connection.cookies(cookies).get();
 			List<Book> books = new ArrayList<>();
             for(Element e: doc.select(EHConstants.ITEM_CSS_SELECTOR)){
 				String title = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).text();
@@ -87,9 +97,10 @@ public class EHUtils {
 				Book book = new Book(title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
 				books.add(book);
 			}
+			Log.i("EHUtils", "get books success at page " + pageIndex + " with " + books.size() + " items");
 			return books;
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.e("EHUtils", "Error while getting books", e);
 			return Collections.emptyList();
 		}
 	}

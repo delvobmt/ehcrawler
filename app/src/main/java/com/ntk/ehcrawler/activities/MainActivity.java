@@ -3,6 +3,7 @@ package com.ntk.ehcrawler.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
@@ -17,7 +18,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.TheHolder;
@@ -26,13 +26,21 @@ import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.ntk.ehcrawler.EHConstants.SEARCH_BOOLEAN_KEY;
+import static com.ntk.ehcrawler.EHConstants.SEARCH_KEY;
+import static com.ntk.ehcrawler.EHConstants.SEARCH_PREFERENCES;
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, SwipeRefreshLayout.OnRefreshListener, MenuItem.OnMenuItemClickListener {
 
     private RecyclerView mBooksView;
     private RecyclerView.LayoutManager mLayoutManager;
     private BookAdapter mAdapter;
-    private boolean loaded = false;
     private SwipeRefreshLayout mRefreshLayout;
+
+    private Map<String, String> filterMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +63,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         getWindowManager().getDefaultDisplay().getSize(point);
         TheHolder.setWidth(point.x);
         TheHolder.setHeight(point.y);
+    }
+
+    @Override
+    protected void onResume() {
+        SharedPreferences preferences = getSharedPreferences(SEARCH_PREFERENCES, MODE_PRIVATE);
+        String f_search = preferences.getString(SEARCH_KEY, "");
+        boolean isChanged = false;
+        for(String key : SEARCH_BOOLEAN_KEY){
+            boolean newValue = preferences.getBoolean(key, true);
+            String oldValue = filterMap.get(key);
+            if(oldValue == null){
+                //first load
+                filterMap.put(key, newValue?"1":"0");
+            }else{
+                isChanged |= newValue != "1".equals(oldValue);
+                //update new value
+                filterMap.put(key, newValue?"1":"0");
+            }
+        }
+        isChanged |= !f_search.equals(filterMap.get(SEARCH_KEY));
+        // update new value
+        filterMap.put(SEARCH_KEY, String.valueOf(f_search));
+        if(isChanged){
+            DatabaseService.setFilterMap(filterMap);
+            getNewData();
+        }
+        super.onResume();
     }
 
     @Override
@@ -98,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void getNewData(){
-        DatabaseService.startGetBook(this);
+        DatabaseService.startGetBook(this, "0");
     }
 
     @Override

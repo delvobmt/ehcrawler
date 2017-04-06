@@ -14,22 +14,23 @@ import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.ntk.ehcrawler.EHConstants.SEARCH_BOOLEAN_KEY;
+import static com.ntk.ehcrawler.EHConstants.SEARCH_KEY;
+
 public class DatabaseService extends IntentService {
     private static final String ACTION_GET_BOOKS = "GET_BOOKS";
     private static final String ACTION_GET_BOOK_DETAILS = "GET_BOOK_DETAILS";
     private static final String ACTION_GET_BOOK_IMAGE = "GET_BOOK_IMAGE";
+    private static Map<String, String> filterMap;
 
     public DatabaseService() {
         super("DatabaseService");
-    }
-
-    public static void startGetBook(Context context) {
-        startGetBook(context, "0");
     }
 
     public static void startGetBook(Context context, String pageIndex) {
@@ -58,6 +59,10 @@ public class DatabaseService extends IntentService {
         intent.putExtra(PageConstants._ID, id);
         intent.putExtra(PageConstants.URL, url);
         context.startService(intent);
+    }
+
+    public static void setFilterMap(Map<String, String> filterMap) {
+        DatabaseService.filterMap = filterMap;
     }
 
     @Override
@@ -146,7 +151,7 @@ public class DatabaseService extends IntentService {
     }
 
     private void getBooks(String pageIndex) {
-        List<Book> books = EHUtils.getBooks(pageIndex);
+        List<Book> books = EHUtils.getBooks(pageIndex, filterMap);
         ContentValues[] valuesArray = new ContentValues[books.size()];
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
