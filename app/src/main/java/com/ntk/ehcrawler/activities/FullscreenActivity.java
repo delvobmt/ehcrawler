@@ -20,6 +20,7 @@ import com.ntk.ehcrawler.adapters.SwipePageAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
+import com.ntk.ehcrawler.services.DatabaseService;
 
 public class FullscreenActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -99,5 +100,11 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
+    }
+
+    @Override
+    protected void onStop() {
+        DatabaseService.startUpdateBookPosition(this ,mURL, mPosition);
+        super.onStop();
     }
 }

@@ -45,7 +45,7 @@ public class PageAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
         if (TextUtils.isEmpty(imageSrc)) {
             //get image src
             String url = cursor.getString(PageConstants.URL_INDEX);
-//            DatabaseService.startGetBookImageSrc(mContext, url);
+//            DatabaseService.startGetPageData(mContext, url);
             return;
         }
         Transformation transformation = new Transformation() {

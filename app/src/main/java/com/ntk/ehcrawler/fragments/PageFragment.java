@@ -1,7 +1,6 @@
 package com.ntk.ehcrawler.fragments;
 
 
-import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -19,20 +18,20 @@ import android.widget.ImageView;
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.TheHolder;
 import com.ntk.ehcrawler.database.BookProvider;
-import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
-public class PageFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class PageFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
     private ImageView mImage;
     private View mLoading;
     private String mUrl;
     private String mSrc;
     private String mId;
+    private String mNl;
 
     public PageFragment() {
         // Required empty public constructor
@@ -43,14 +42,16 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.page_view, null);
         mImage = (ImageView) view.findViewById(R.id.image_iv);
+        view.findViewById(R.id.reload).setOnClickListener(this);
         mLoading = view.findViewById(R.id.loading);
         mSrc = getArguments().getString(PageConstants.SRC);
         mUrl = getArguments().getString(PageConstants.URL);
         mId = getArguments().getString(PageConstants._ID);
+        mNl = getArguments().getString(PageConstants.NEWLINK);
         if(!TextUtils.isEmpty(mSrc)){
             bindView(mSrc);
         }else{
-            DatabaseService.startGetBookImageSrc(getContext(), mId, mUrl);
+            DatabaseService.startGetPageData(getContext(), mId, mUrl);
             getLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
         }
         return view;
@@ -97,7 +98,6 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
 
             @Override
             public void onError() {
-
             }
         });
     }
@@ -116,6 +116,7 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if(data.moveToFirst()) {
             mSrc = data.getString(PageConstants.SRC_INDEX);
+            mNl = data.getString(PageConstants.NEWLINK_INDEX);
             if (!TextUtils.isEmpty(mSrc)) {
                 bindView(mSrc);
             }
@@ -125,5 +126,14 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.reload:{
+                DatabaseService.startGetPageData(getContext(), mId, mUrl, mNl);
+            } break;
+        }
     }
 }

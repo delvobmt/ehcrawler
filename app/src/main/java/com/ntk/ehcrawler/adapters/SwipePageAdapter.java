@@ -27,6 +27,7 @@ public class SwipePageAdapter extends CursorPagerViewAdapter {
         final String id = cursor.getString(0);
         final String src = cursor.getString(PageConstants.SRC_INDEX);
         final String url = cursor.getString(PageConstants.URL_INDEX);
+        final String nl = cursor.getString(PageConstants.NEWLINK_INDEX);
         int position = cursor.getPosition()+1;
         int count = cursor.getCount();
         final String bookUrl = cursor.getString(PageConstants.BOOK_URL_INDEX);
@@ -34,9 +35,10 @@ public class SwipePageAdapter extends CursorPagerViewAdapter {
             int pageIndex = (position / EHConstants.PAGES_PER_PAGE) + 1;
             DatabaseService.startGetBookDetail(mContext, id, bookUrl, String.valueOf(pageIndex));
         }
+        fragment.getArguments().putString(PageConstants._ID, id);
         fragment.getArguments().putString(PageConstants.SRC, src);
         fragment.getArguments().putString(PageConstants.URL, url);
-        fragment.getArguments().putString(PageConstants._ID, id);
+        fragment.getArguments().putString(PageConstants.NEWLINK, nl);
         return fragment;
     }
 }

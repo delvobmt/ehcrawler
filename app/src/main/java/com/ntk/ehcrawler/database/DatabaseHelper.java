@@ -23,15 +23,51 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                     + BookConstants.TYPE + " TEXT,"
                     + BookConstants.DETAIL + " TEXT,"
                     + BookConstants.TAGS + " TEXT)",
+            "CREATE TABLE " + BookConstants.TABLE_CACHE
+                    + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
+                    + BookConstants.CURRENT_POSITION + " INT,"
+                    + BookConstants.URL + " TEXT UNIQUE)",
+            "CREATE TABLE " + BookConstants.TABLE_FAVORITE_NAME
+                    + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
+                    + BookConstants.TITLE + " TEXT,"
+                    + BookConstants.URL + " TEXT UNIQUE,"
+                    + BookConstants.IMAGE_SRC + " TEXT,"
+                    + BookConstants.FILE_COUNT + " TEXT,"
+                    + BookConstants.RATE + " INT,"
+                    + BookConstants.TYPE + " TEXT,"
+                    + BookConstants.DETAIL + " TEXT,"
+                    + BookConstants.TAGS + " TEXT)",
             "CREATE TABLE " + PageConstants.TABLE_NAME
                     + " (" + PageConstants._ID + " INTEGER PRIMARY KEY,"
                     + PageConstants.BOOK_URL + " TEXT,"
                     + PageConstants.URL + " TEXT,"
                     + PageConstants.THUMB_SRC + " TEXT,"
-                    + PageConstants.SRC + " TEXT);"
+                    + PageConstants.SRC + " TEXT,"
+                    + PageConstants.NEWLINK + " TEXT);"
     };
+    public static final String SQL_FAVORITE_BOOK = "INSERT INTO " + BookConstants.TABLE_FAVORITE_NAME
+            + "("+ BookConstants.TITLE + ","
+            + BookConstants.URL + ","
+            + BookConstants.IMAGE_SRC + ","
+            + BookConstants.FILE_COUNT + ","
+            + BookConstants.RATE + ","
+            + BookConstants.TYPE + ","
+            + BookConstants.DETAIL + ","
+            + BookConstants.TAGS
+            +") SELECT "
+            + BookConstants.TITLE + ","
+            + BookConstants.URL + ","
+            + BookConstants.IMAGE_SRC + ","
+            + BookConstants.FILE_COUNT + ","
+            + BookConstants.RATE + ","
+            + BookConstants.TYPE + ","
+            + BookConstants.DETAIL + ","
+            + BookConstants.TAGS
+            +" FROM " + BookConstants.TABLE_NAME + " WHERE " + BookConstants._ID + "=?";
     public static final String[] SQL_CLEAR_DATABASE = {
             "DROP TABLE IF EXISTS " + BookConstants.TABLE_NAME,
+            "DROP TABLE IF EXISTS " + BookConstants.TABLE_FAVORITE_NAME,
+            "DROP TABLE IF EXISTS " + BookConstants.TABLE_CACHE,
             "DROP TABLE IF EXISTS " + PageConstants.TABLE_NAME
     };
 

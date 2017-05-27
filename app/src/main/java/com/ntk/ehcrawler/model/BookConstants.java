@@ -5,6 +5,8 @@ import android.provider.BaseColumns;
 public interface BookConstants extends BaseColumns {
 
     String TABLE_NAME = "BOOKS";
+    String TABLE_FAVORITE_NAME = "FAVORITE_BOOKS";
+    String TABLE_CACHE = "BOOKS_CACHE";
     String TITLE = "title";
     int TITLE_INDEX = 1;
     String URL = "url";
@@ -21,6 +23,8 @@ public interface BookConstants extends BaseColumns {
     int DETAIL_INDEX = 7;
     String TAGS = "tags";
     int TAGS_INDEX = 8;
+    String CURRENT_POSITION = "current_position";
+    int CURRENT_POSITION_INDEX = 1;
 
     String[] PROJECTION = {
             _ID,
@@ -32,5 +36,11 @@ public interface BookConstants extends BaseColumns {
             TYPE,
             DETAIL,
             TAGS
+    };
+
+    String[] CACHE_PROJECTION = {
+            _ID,
+            URL,
+            CURRENT_POSITION
     };
 }

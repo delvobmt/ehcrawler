@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -20,7 +19,9 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
+import com.ntk.ehcrawler.TheHolder;
 import com.ntk.ehcrawler.adapters.ThumbAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
@@ -28,12 +29,13 @@ import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Picasso;
 
-public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
     private String mURL;
     private RecyclerView mThumbView;
     private ThumbAdapter mAdapter;
     private String mId;
+    private int mCurrentPosition;
     private View mLoading;
 
     @Override
@@ -47,18 +49,12 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.favorite);
+        fab.setOnClickListener(this);
         mThumbView = (RecyclerView) findViewById(R.id.gallery_thumbnails_rv);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
         mThumbView.setLayoutManager(layoutManager);
-        mAdapter = new ThumbAdapter(this, bookSize);
+        mAdapter = new ThumbAdapter(this, bookSize, TheHolder.getActiveStatus() == EHConstants.FAVORITE_ACTIVE);
         mThumbView.setAdapter(mAdapter);
 
         mLoading = findViewById(R.id.loading);
@@ -77,7 +73,11 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         String sortOrder = null;
         switch (id){
             case BookProvider.BOOK_INFO_LOADER:
-                uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, mId);
+                if (TheHolder.getActiveStatus() == EHConstants.FAVORITE_ACTIVE) {
+                    uri = Uri.withAppendedPath(BookProvider.FAVORITE_BOOKS_CONTENT_URI, mId);
+                }else{
+                    uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, mId);
+                }
                 projection = BookConstants.PROJECTION;
                 selection = BookConstants.URL.concat("=?");
                 selectionArgs = new String[]{mURL};
@@ -102,6 +102,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                 mAdapter.changeCursor(data);
                 break;
         }
+        mThumbView.scrollToPosition(mCurrentPosition);
 
     }
 
@@ -110,6 +111,8 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         mId = data.getString(0);
         String detail = data.getString(BookConstants.DETAIL_INDEX);
         String tags = data.getString(BookConstants.TAGS_INDEX);
+        mCurrentPosition = data.getInt(BookConstants.CURRENT_POSITION_INDEX);
+
         if (TextUtils.isEmpty(detail)) {
             getBookDetail();
         } else {
@@ -136,10 +139,19 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     }
 
     private void getBookDetail() {
-        DatabaseService.startGetBookDetail(this, mId, mURL);
+        DatabaseService.startGetBookDetail(this, mId, mURL, "0");
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.favorite:{
+                DatabaseService.startAddFavoriteBook(this, mId);
+            }break;
+        }
     }
 }

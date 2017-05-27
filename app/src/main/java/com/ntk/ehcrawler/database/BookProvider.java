@@ -6,7 +6,9 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.ntk.ehcrawler.model.BookConstants;
@@ -17,6 +19,8 @@ public class BookProvider extends ContentProvider {
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final Uri BOOKS_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, BookConstants.TABLE_NAME);
+    public static final Uri FAVORITE_BOOKS_CONTENT_URI = Uri.withAppendedPath(
+            CONTENT_URI, BookConstants.TABLE_FAVORITE_NAME);
     public static final Uri PAGES_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, PageConstants.TABLE_NAME);
 
@@ -24,11 +28,15 @@ public class BookProvider extends ContentProvider {
     private static final int PAGES_QUERY = 2;
     private static final int ONE_BOOK_QUERY = 3;
     private static final int ONE_PAGE_QUERY = 4;
+    private static final int FAVORITE_BOOKS_QUERY = 5;
+    private static final int ONE_FAVORITE_BOOK_QUERY = 6;
+
     private static final UriMatcher sUriMatcher;
     private static final SparseArray<String> sMimeTypes;
     public static final int BOOKS_LOADER = 0;
     public static final int BOOK_INFO_LOADER = 1;
     public static final int PAGE_INFO_LOADER = 2;
+    public static final int FAVORITE_BOOKS_LOADER = 3;
 
     static {
         sUriMatcher = new UriMatcher(0);
@@ -36,6 +44,8 @@ public class BookProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME, PAGES_QUERY);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME+"/#", ONE_BOOK_QUERY);
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME+"/#", ONE_PAGE_QUERY);
+        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME, FAVORITE_BOOKS_QUERY);
+        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME+"/#", ONE_FAVORITE_BOOK_QUERY);
 
         sMimeTypes = new SparseArray<>();
         sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
@@ -46,6 +56,10 @@ public class BookProvider extends ContentProvider {
                 + "." + BookConstants.TABLE_NAME);
         sMimeTypes.put(ONE_PAGE_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + PageConstants.TABLE_NAME);
+        sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
+                + "." + BookConstants.TABLE_FAVORITE_NAME);
+        sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
+                + "." + BookConstants.TABLE_FAVORITE_NAME);
     }
 
     private DatabaseHelper mDBHelper;
@@ -62,6 +76,8 @@ public class BookProvider extends ContentProvider {
                 return writableDB.delete(BookConstants.TABLE_NAME, selection, selectionArgs);
             case PAGES_QUERY:
                 return writableDB.delete(PageConstants.TABLE_NAME, selection, selectionArgs);
+            case FAVORITE_BOOKS_QUERY:
+                return writableDB.delete(BookConstants.TABLE_FAVORITE_NAME, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
         }
@@ -75,18 +91,18 @@ public class BookProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         switch (sUriMatcher.match(uri)) {
-            case BOOKS_QUERY:
+            case FAVORITE_BOOKS_QUERY:
                 try {
-                    writableDB.insertOrThrow(BookConstants.TABLE_NAME, null, values);
-                } catch (SQLiteConstraintException e) {
-                    //book url is existed, update book with new info
-                    String whereClause = BookConstants.URL + "=?";
-                    String[] whereArgs = { values.getAsString(BookConstants.URL) };
-                    writableDB.update(BookConstants.TABLE_NAME, values, whereClause, whereArgs);
+                    Object[] id = {values.getAsString(BookConstants._ID)};
+                    writableDB.execSQL(DatabaseHelper.SQL_FAVORITE_BOOK, id);
+                }catch (SQLiteException e){
+                    Log.e("BookProvider", "Error while insert Favorite book", e);
                 }
+                break;
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
         }
+        return null;
     }
 
     @Override
@@ -154,6 +170,16 @@ public class BookProvider extends ContentProvider {
                 return cursor;
             case ONE_BOOK_QUERY:
                 cursor = readableDB.query(BookConstants.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder,"1");
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
+            case FAVORITE_BOOKS_QUERY:
+                cursor = readableDB.query(BookConstants.TABLE_FAVORITE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
+            case ONE_FAVORITE_BOOK_QUERY:
+                cursor = readableDB.query(BookConstants.TABLE_FAVORITE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;

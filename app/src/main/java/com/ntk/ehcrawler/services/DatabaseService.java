@@ -8,6 +8,7 @@ import android.net.Uri;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.EHUtils;
+import com.ntk.ehcrawler.TheHolder;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
@@ -22,14 +23,14 @@ import java.util.Set;
 public class DatabaseService extends IntentService {
     private static final String ACTION_GET_BOOKS = "GET_BOOKS";
     private static final String ACTION_GET_BOOK_DETAILS = "GET_BOOK_DETAILS";
-    private static final String ACTION_GET_BOOK_IMAGE = "GET_BOOK_IMAGE";
+    private static final String ACTION_GET_PAGE_IMAGE = "GET_BOOK_IMAGE";
+    private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
+    private static final String ACTION_ADD_FAVORITE_BOOK = "ADD_FAVORITE_BOOK";
+
+    private static Map<String, String> filterMap;
 
     public DatabaseService() {
         super("DatabaseService");
-    }
-
-    public static void startGetBook(Context context) {
-        startGetBook(context, "0");
     }
 
     public static void startGetBook(Context context, String pageIndex) {
@@ -39,9 +40,6 @@ public class DatabaseService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startGetBookDetail(Context context, String id, String url) {
-        startGetBookDetail(context, id, url, "0");
-    }
     public static void startGetBookDetail(Context context, String id, String url, String pageIndex) {
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_GET_BOOK_DETAILS);
@@ -52,12 +50,36 @@ public class DatabaseService extends IntentService {
     }
 
 
-    public static void startGetBookImageSrc(Context context, String id, String url) {
+    public static void startGetPageData(Context context, String id, String url) {
+        startGetPageData(context, id, url, null);
+    }
+
+    public static void startGetPageData(Context context, String id, String url, String newLink) {
         Intent intent = new Intent(context, DatabaseService.class);
-        intent.setAction(ACTION_GET_BOOK_IMAGE);
+        intent.setAction(ACTION_GET_PAGE_IMAGE);
         intent.putExtra(PageConstants._ID, id);
         intent.putExtra(PageConstants.URL, url);
+        intent.putExtra(PageConstants.NEWLINK, newLink);
         context.startService(intent);
+    }
+
+    public static void startUpdateBookPosition(Context context, String url, int position) {
+        Intent intent = new Intent(context, DatabaseService.class);
+        intent.setAction(ACTION_UPDATE_BOOK_POSITION);
+        intent.putExtra(BookConstants.URL, url);
+        intent.putExtra(BookConstants.CURRENT_POSITION, position);
+        context.startService(intent);
+    }
+
+    public static void startAddFavoriteBook(Context context, String id) {
+        Intent intent = new Intent(context, DatabaseService.class);
+        intent.setAction(ACTION_ADD_FAVORITE_BOOK);
+        intent.putExtra(BookConstants._ID, id);
+        context.startService(intent);
+    }
+
+    public static void setFilterMap(Map<String, String> filterMap) {
+        DatabaseService.filterMap = filterMap;
     }
 
     @Override
@@ -72,19 +94,43 @@ public class DatabaseService extends IntentService {
                 String id = intent.getStringExtra(BookConstants._ID);
                 String url = intent.getStringExtra(BookConstants.URL);
                 getBookDetail(id, url, pageIndex);
-            } else if (ACTION_GET_BOOK_IMAGE.equals(action)) {
+            } else if (ACTION_GET_PAGE_IMAGE.equals(action)) {
                 String id = intent.getStringExtra(PageConstants._ID);
                 String url = intent.getStringExtra(PageConstants.URL);
-                getPageImageSrc(id, url);
+                String nl = intent.getStringExtra(PageConstants.NEWLINK);
+                getPageData(id, url, nl);
+            }else if(ACTION_UPDATE_BOOK_POSITION.equals(action)){
+                String url = intent.getStringExtra(BookConstants.URL);
+                int position = intent.getIntExtra(BookConstants.CURRENT_POSITION, 0);
+                updateBookPosition(url, position);
+            }else if(ACTION_ADD_FAVORITE_BOOK.equals(action)){
+                String id = intent.getStringExtra(BookConstants._ID);
+                addFavoriteBook(id);
             }
         }
     }
 
-    private void getPageImageSrc(String id, String url) {
-        String pageImageUrl = EHUtils.getPageImageSrc(url);
-        Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, id);
+    private void addFavoriteBook(String id) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(PageConstants.SRC, pageImageUrl);
+        contentValues.put(BookConstants._ID, id);
+        Uri uri = BookProvider.FAVORITE_BOOKS_CONTENT_URI;
+        getContentResolver().insert(uri, contentValues);
+    }
+
+    private void updateBookPosition(String url, int position) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(BookConstants.CURRENT_POSITION, position);
+        Uri uri = TheHolder.getActiveStatus() == EHConstants.NO_ACTIVE ?
+                BookProvider.BOOKS_CONTENT_URI :
+                BookProvider.FAVORITE_BOOKS_CONTENT_URI;
+        String selection = PageConstants.URL + "=?";
+        String[] selectionArgs = {url};
+        getContentResolver().update(uri, contentValues, selection, selectionArgs);
+    }
+
+    private void getPageData(String id, String url, String nl) {
+        ContentValues contentValues = EHUtils.getPageData(url, nl);
+        Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, id);
         String selection = PageConstants.URL + "=?";
         String[] selectionArgs = {url};
         getContentResolver().update(uri, contentValues, selection, selectionArgs);
@@ -121,8 +167,9 @@ public class DatabaseService extends IntentService {
                 }
                 tagsBuilder.append(System.getProperty("line.separator"));
             }
-
-            Uri uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
+            Uri uri = TheHolder.getActiveStatus() == EHConstants.FAVORITE_ACTIVE ?
+                    Uri.withAppendedPath(BookProvider.FAVORITE_BOOKS_CONTENT_URI, id) :
+                    Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
             ContentValues contentValues = new ContentValues();
             contentValues.put(BookConstants.DETAIL, infoBuilder.toString());
             contentValues.put(BookConstants.TAGS, tagsBuilder.toString());
@@ -146,7 +193,7 @@ public class DatabaseService extends IntentService {
     }
 
     private void getBooks(String pageIndex) {
-        List<Book> books = EHUtils.getBooks(pageIndex);
+        List<Book> books = EHUtils.getBooks(pageIndex, filterMap);
         ContentValues[] valuesArray = new ContentValues[books.size()];
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
@@ -160,6 +207,7 @@ public class DatabaseService extends IntentService {
         }
         if("0".equals(pageIndex)) {
             getContentResolver().delete(BookProvider.BOOKS_CONTENT_URI, null, null);
+            getContentResolver().delete(BookProvider.PAGES_CONTENT_URI, null, null);
         }
         getContentResolver().bulkInsert(BookProvider.BOOKS_CONTENT_URI, valuesArray);
     }

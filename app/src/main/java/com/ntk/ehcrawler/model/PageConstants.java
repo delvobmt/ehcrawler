@@ -12,12 +12,15 @@ public interface PageConstants extends BaseColumns{
     int THUMB_SRC_INDEX = 3;
     String SRC = "src";
     int SRC_INDEX = 4;
+    String NEWLINK = "nl";
+    int NEWLINK_INDEX = 5;
 
     String[] PROJECTION = {
             _ID,
             BOOK_URL,
             URL,
             THUMB_SRC,
-            SRC
+            SRC,
+            NEWLINK
     };
 }

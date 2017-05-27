@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
@@ -37,7 +38,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
         int position = cursor.getPosition()+1;
         int count = cursor.getCount();
         if(position == count){
-            int pageIndex = (position/ EHConstants.BOOKS_PER_PAGE)+1;
+            int pageIndex = position/ EHConstants.BOOKS_PER_PAGE;
             DatabaseService.startGetBook(mContext, String.valueOf(pageIndex));
         }
         View view = holder.itemView;
@@ -63,7 +64,6 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
 
             @Override
             public void onError() {
-
             }
         });
         mTitle.setText(title);

@@ -7,43 +7,43 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/pref_title_search_key" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_doujinshi"
         android:title="@string/pref_title_f_doujinshi" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_manga"
         android:title="@string/pref_title_f_manga" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_artistcg"
         android:title="@string/pref_title_f_artistcg" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_gamecg"
         android:title="@string/pref_title_f_gamecg" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_non-h"
         android:title="@string/pref_title_f_non_h" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_western"
         android:title="@string/pref_title_f_western" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_imageset"
         android:title="@string/pref_title_f_imageset" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_cosplay"
         android:title="@string/pref_title_f_cosplay" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_asianporn"
         android:title="@string/pref_title_f_asianporn" />
-    <SwitchPreference
+    <com.ntk.ehcrawler.MyPreference
         android:defaultValue="true"
         android:key="f_misc"
         android:title="@string/pref_title_f_misc" />
