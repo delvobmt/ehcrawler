@@ -1,11 +1,5 @@
 package com.ntk.ehcrawler.services;
 
-import android.app.IntentService;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.EHUtils;
 import com.ntk.ehcrawler.TheHolder;
@@ -13,12 +7,6 @@ import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DatabaseService extends IntentService {
     private static final String ACTION_GET_BOOKS = "GET_BOOKS";
