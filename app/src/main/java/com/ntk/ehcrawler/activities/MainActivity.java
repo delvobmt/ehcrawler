@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             if(oldValue == null){
                 //first load
                 filterMap.put(key, newValue?"1":"0");
+                mChanged = true;
             }else{
                 mChanged |= newValue != "1".equals(oldValue);
                 //update new value

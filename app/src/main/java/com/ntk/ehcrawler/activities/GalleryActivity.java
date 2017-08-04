@@ -36,6 +36,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     private ThumbAdapter mAdapter;
     private String mId;
     private int mCurrentPosition;
+    private boolean mNeedScroll;
     private View mLoading;
 
     @Override
@@ -61,6 +62,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
 
         getSupportLoaderManager().initLoader(BookProvider.BOOK_INFO_LOADER, null, this);
         getSupportLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
+        getSupportLoaderManager().initLoader(BookProvider.READ_BOOKS_LOADER, null, this);
     }
 
     @Override
@@ -82,6 +84,12 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                 selection = BookConstants.URL.concat("=?");
                 selectionArgs = new String[]{mURL};
                 break;
+            case BookProvider.READ_BOOKS_LOADER:
+                uri = Uri.withAppendedPath(BookProvider.READ_BOOKS_CONTENT_URI, mId);
+                projection = BookConstants.READ_BOOKS_PROJECTION;
+                selection = BookConstants.URL.concat("=?");
+                selectionArgs = new String[]{mURL};
+                break;
             case BookProvider.PAGE_INFO_LOADER:
                 uri = BookProvider.PAGES_CONTENT_URI;
                 projection = PageConstants.PROJECTION;
@@ -98,12 +106,25 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
             case BookProvider.BOOK_INFO_LOADER:
                 setInfoForBook(data);
                 break;
+            case BookProvider.READ_BOOKS_LOADER:
+                setReadStatus(data);
+                mNeedScroll = true;
+                break;
             case BookProvider.PAGE_INFO_LOADER:
                 mAdapter.changeCursor(data);
                 break;
         }
-        mThumbView.scrollToPosition(mCurrentPosition);
+        if(mNeedScroll){
+            mThumbView.smoothScrollToPosition(mCurrentPosition);
+                    /* in case data is cleared, page data need to reload step by step
+                    * we cannot need to call load new data, util it scrolls to position */
+            mNeedScroll = data.getCount() < mCurrentPosition;
+        }
+    }
 
+    private void setReadStatus(Cursor data) {
+        if(!data.moveToFirst()) return;
+        mCurrentPosition = data.getInt(BookConstants.CURRENT_POSITION_INDEX);
     }
 
     private void setInfoForBook(Cursor data) {
@@ -111,7 +132,6 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         mId = data.getString(0);
         String detail = data.getString(BookConstants.DETAIL_INDEX);
         String tags = data.getString(BookConstants.TAGS_INDEX);
-        mCurrentPosition = data.getInt(BookConstants.CURRENT_POSITION_INDEX);
 
         if (TextUtils.isEmpty(detail)) {
             getBookDetail();

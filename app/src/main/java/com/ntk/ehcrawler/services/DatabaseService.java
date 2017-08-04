@@ -1,5 +1,11 @@
 package com.ntk.ehcrawler.services;
 
+import android.app.IntentService;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.EHUtils;
 import com.ntk.ehcrawler.TheHolder;
@@ -7,6 +13,12 @@ import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DatabaseService extends IntentService {
     private static final String ACTION_GET_BOOKS = "GET_BOOKS";
@@ -108,9 +120,8 @@ public class DatabaseService extends IntentService {
     private void updateBookPosition(String url, int position) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(BookConstants.CURRENT_POSITION, position);
-        Uri uri = TheHolder.getActiveStatus() == EHConstants.NO_ACTIVE ?
-                BookProvider.BOOKS_CONTENT_URI :
-                BookProvider.FAVORITE_BOOKS_CONTENT_URI;
+        contentValues.put(BookConstants.URL, url);
+        Uri uri = BookProvider.READ_BOOKS_CONTENT_URI;
         String selection = PageConstants.URL + "=?";
         String[] selectionArgs = {url};
         getContentResolver().update(uri, contentValues, selection, selectionArgs);

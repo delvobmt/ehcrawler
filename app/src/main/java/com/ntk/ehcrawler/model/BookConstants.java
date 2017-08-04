@@ -6,7 +6,7 @@ public interface BookConstants extends BaseColumns {
 
     String TABLE_NAME = "BOOKS";
     String TABLE_FAVORITE_NAME = "FAVORITE_BOOKS";
-    String TABLE_CACHE = "BOOKS_CACHE";
+    String TABLE_READ_BOOKS_NAME = "READ_BOOKS";
     String TITLE = "title";
     int TITLE_INDEX = 1;
     String URL = "url";
@@ -38,9 +38,9 @@ public interface BookConstants extends BaseColumns {
             TAGS
     };
 
-    String[] CACHE_PROJECTION = {
+    String[] READ_BOOKS_PROJECTION = {
             _ID,
-            URL,
-            CURRENT_POSITION
+            CURRENT_POSITION,
+            URL
     };
 }
