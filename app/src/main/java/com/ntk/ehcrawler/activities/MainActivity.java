@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             if(oldValue == null){
                 //first load
                 filterMap.put(key, newValue?"1":"0");
-                mChanged = true;
             }else{
                 mChanged |= newValue != "1".equals(oldValue);
                 //update new value
@@ -90,8 +89,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mChanged |= oldKey != null && !f_search.equals(oldKey);
         // update new value
         filterMap.put(SEARCH_KEY, String.valueOf(f_search));
+        DatabaseService.setFilterMap(filterMap);
         if (mChanged) {
-            DatabaseService.setFilterMap(filterMap);
             getNewData();
         }
         super.onResume();
@@ -124,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 projection = BookConstants.PROJECTION;
             }break;
             case BookProvider.FAVORITE_BOOKS_LOADER:{
-                uri = BookProvider.FAVORITE_BOOKS_CONTENT_URI;
+                uri = BookProvider.BOOKS_CONTENT_URI;
                 projection = BookConstants.PROJECTION;
             }break;
         }

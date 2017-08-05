@@ -25,7 +25,7 @@ public class DatabaseService extends IntentService {
     private static final String ACTION_GET_BOOK_DETAILS = "GET_BOOK_DETAILS";
     private static final String ACTION_GET_PAGE_IMAGE = "GET_BOOK_IMAGE";
     private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
-    private static final String ACTION_ADD_FAVORITE_BOOK = "ADD_FAVORITE_BOOK";
+    private static final String ACTION_FAVORITE_BOOK = "FAVORITE_BOOK";
 
     private static Map<String, String> filterMap;
 
@@ -71,10 +71,11 @@ public class DatabaseService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startAddFavoriteBook(Context context, String id) {
+    public static void startFavoriteBook(Context context, String url, boolean favorite) {
         Intent intent = new Intent(context, DatabaseService.class);
-        intent.setAction(ACTION_ADD_FAVORITE_BOOK);
-        intent.putExtra(BookConstants._ID, id);
+        intent.setAction(ACTION_FAVORITE_BOOK);
+        intent.putExtra(BookConstants.URL, url);
+        intent.putExtra(BookConstants.IS_FAVORITE, favorite);
         context.startService(intent);
     }
 
@@ -103,27 +104,32 @@ public class DatabaseService extends IntentService {
                 String url = intent.getStringExtra(BookConstants.URL);
                 int position = intent.getIntExtra(BookConstants.CURRENT_POSITION, 0);
                 updateBookPosition(url, position);
-            }else if(ACTION_ADD_FAVORITE_BOOK.equals(action)){
-                String id = intent.getStringExtra(BookConstants._ID);
-                addFavoriteBook(id);
+            }else if(ACTION_FAVORITE_BOOK.equals(action)){
+                String url = intent.getStringExtra(BookConstants.URL);
+                Boolean favorite = intent.getBooleanExtra(BookConstants.IS_FAVORITE, false);
+                favoriteBook(url, favorite);
             }
         }
     }
 
-    private void addFavoriteBook(String id) {
+    private void favoriteBook(String url, boolean favorite) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(BookConstants._ID, id);
-        Uri uri = BookProvider.FAVORITE_BOOKS_CONTENT_URI;
-        getContentResolver().insert(uri, contentValues);
+        contentValues.put(BookConstants._ID, url);
+        contentValues.put(BookConstants.IS_FAVORITE, favorite);
+        updateBookStatus(url,contentValues);
     }
 
     private void updateBookPosition(String url, int position) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(BookConstants.CURRENT_POSITION, position);
         contentValues.put(BookConstants.URL, url);
-        Uri uri = BookProvider.READ_BOOKS_CONTENT_URI;
+        updateBookStatus(url, contentValues);
+    }
+
+    private void updateBookStatus(String url, ContentValues contentValues){
         String selection = PageConstants.URL + "=?";
         String[] selectionArgs = {url};
+        Uri uri = BookProvider.BOOK_STATUS_CONTENT_URI;
         getContentResolver().update(uri, contentValues, selection, selectionArgs);
     }
 
@@ -166,9 +172,7 @@ public class DatabaseService extends IntentService {
                 }
                 tagsBuilder.append(System.getProperty("line.separator"));
             }
-            Uri uri = TheHolder.getActiveStatus() == EHConstants.FAVORITE_ACTIVE ?
-                    Uri.withAppendedPath(BookProvider.FAVORITE_BOOKS_CONTENT_URI, id) :
-                    Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
+            Uri uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
             ContentValues contentValues = new ContentValues();
             contentValues.put(BookConstants.DETAIL, infoBuilder.toString());
             contentValues.put(BookConstants.TAGS, tagsBuilder.toString());

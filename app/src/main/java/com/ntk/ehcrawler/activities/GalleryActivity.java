@@ -85,8 +85,8 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                 selectionArgs = new String[]{mURL};
                 break;
             case BookProvider.READ_BOOKS_LOADER:
-                uri = Uri.withAppendedPath(BookProvider.READ_BOOKS_CONTENT_URI, mId);
-                projection = BookConstants.READ_BOOKS_PROJECTION;
+                uri = Uri.withAppendedPath(BookProvider.BOOK_STATUS_CONTENT_URI, mId);
+                projection = BookConstants.BOOK_STATUS_PROJECTION;
                 selection = BookConstants.URL.concat("=?");
                 selectionArgs = new String[]{mURL};
                 break;
@@ -170,7 +170,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.favorite:{
-                DatabaseService.startAddFavoriteBook(this, mId);
+                DatabaseService.startFavoriteBook(this, mId, true);
             }break;
         }
     }

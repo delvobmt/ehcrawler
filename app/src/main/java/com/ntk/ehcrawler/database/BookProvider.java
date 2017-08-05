@@ -21,8 +21,8 @@ public class BookProvider extends ContentProvider {
             CONTENT_URI, BookConstants.TABLE_NAME);
     public static final Uri FAVORITE_BOOKS_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, BookConstants.TABLE_FAVORITE_NAME);
-    public static final Uri READ_BOOKS_CONTENT_URI = Uri.withAppendedPath(
-            CONTENT_URI, BookConstants.TABLE_READ_BOOKS_NAME);
+    public static final Uri BOOK_STATUS_CONTENT_URI = Uri.withAppendedPath(
+            CONTENT_URI, BookConstants.TABLE_BOOK_STATUS_NAME);
     public static final Uri PAGES_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, PageConstants.TABLE_NAME);
 
@@ -51,8 +51,8 @@ public class BookProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME+"/#", ONE_PAGE_QUERY);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME, FAVORITE_BOOKS_QUERY);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME+"/#", ONE_FAVORITE_BOOK_QUERY);
-        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_READ_BOOKS_NAME, READ_BOOK_QUERY);
-        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_READ_BOOKS_NAME +"/#", ONE_READ_BOOK_QUERY);
+        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_BOOK_STATUS_NAME, READ_BOOK_QUERY);
+        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_BOOK_STATUS_NAME +"/#", ONE_READ_BOOK_QUERY);
 
         sMimeTypes = new SparseArray<>();
         sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
@@ -68,9 +68,9 @@ public class BookProvider extends ContentProvider {
         sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_FAVORITE_NAME);
         sMimeTypes.put(READ_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
-                + "." + BookConstants.TABLE_READ_BOOKS_NAME);
+                + "." + BookConstants.TABLE_BOOK_STATUS_NAME);
         sMimeTypes.put(ONE_READ_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
-                + "." + BookConstants.TABLE_READ_BOOKS_NAME);
+                + "." + BookConstants.TABLE_BOOK_STATUS_NAME);
     }
 
     private DatabaseHelper mDBHelper;
@@ -205,7 +205,7 @@ public class BookProvider extends ContentProvider {
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
             case ONE_READ_BOOK_QUERY:
-                cursor = readableDB.query(BookConstants.TABLE_READ_BOOKS_NAME, projection, selection, selectionArgs,
+                cursor = readableDB.query(BookConstants.TABLE_BOOK_STATUS_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
@@ -231,10 +231,10 @@ public class BookProvider extends ContentProvider {
                 return update;
             case READ_BOOK_QUERY:
             case ONE_READ_BOOK_QUERY:
-                update = writableDB.update(BookConstants.TABLE_READ_BOOKS_NAME, values, selection, selectionArgs);
+                update = writableDB.update(BookConstants.TABLE_BOOK_STATUS_NAME, values, selection, selectionArgs);
                 if(update<=0){
                     /* no row affected, this book has not read before */
-                    writableDB.insert(BookConstants.TABLE_READ_BOOKS_NAME, null, values);
+                    writableDB.insert(BookConstants.TABLE_BOOK_STATUS_NAME, null, values);
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return update;

@@ -23,10 +23,11 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                     + BookConstants.TYPE + " TEXT,"
                     + BookConstants.DETAIL + " TEXT,"
                     + BookConstants.TAGS + " TEXT)",
-            "CREATE TABLE " + BookConstants.TABLE_READ_BOOKS_NAME
+            "CREATE TABLE " + BookConstants.TABLE_BOOK_STATUS_NAME
                     + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
+                    + BookConstants.URL + " TEXT UNIQUE,"
                     + BookConstants.CURRENT_POSITION + " INT,"
-                    + BookConstants.URL + " TEXT UNIQUE)",
+                    + BookConstants.IS_FAVORITE + " INT)",
             "CREATE TABLE " + BookConstants.TABLE_FAVORITE_NAME
                     + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
                     + BookConstants.TITLE + " TEXT,"
@@ -67,7 +68,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String[] SQL_CLEAR_DATABASE = {
             "DROP TABLE IF EXISTS " + BookConstants.TABLE_NAME,
             "DROP TABLE IF EXISTS " + BookConstants.TABLE_FAVORITE_NAME,
-            "DROP TABLE IF EXISTS " + BookConstants.TABLE_READ_BOOKS_NAME,
+            "DROP TABLE IF EXISTS " + BookConstants.TABLE_BOOK_STATUS_NAME,
             "DROP TABLE IF EXISTS " + PageConstants.TABLE_NAME
     };
 
