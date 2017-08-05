@@ -121,10 +121,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             case BookProvider.BOOKS_LOADER:{
                 uri = BookProvider.BOOKS_CONTENT_URI;
                 projection = BookConstants.PROJECTION;
+                selection = BookConstants.IS_HIDDEN + "!= 1";
+                selectionArgs = new String[]{};
             }break;
             case BookProvider.FAVORITE_BOOKS_LOADER:{
                 uri = BookProvider.BOOKS_CONTENT_URI;
                 projection = BookConstants.PROJECTION;
+                selection = BookConstants.IS_FAVORITE + "=?";
+                selectionArgs = new String[]{"1"};
             }break;
         }
         return new CursorLoader(context, uri, projection, selection, selectionArgs, sortOrder);
