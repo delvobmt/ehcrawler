@@ -6,9 +6,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.ntk.ehcrawler.model.BookConstants;
@@ -21,8 +19,8 @@ public class BookProvider extends ContentProvider {
             CONTENT_URI, BookConstants.TABLE_NAME);
     public static final Uri FAVORITE_BOOKS_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, BookConstants.TABLE_FAVORITE_NAME);
-    public static final Uri READ_BOOKS_CONTENT_URI = Uri.withAppendedPath(
-            CONTENT_URI, BookConstants.TABLE_READ_BOOKS_NAME);
+    public static final Uri BOOK_STATUS_CONTENT_URI = Uri.withAppendedPath(
+            CONTENT_URI, BookConstants.TABLE_BOOK_STATUS_NAME);
     public static final Uri PAGES_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, PageConstants.TABLE_NAME);
 
@@ -31,14 +29,12 @@ public class BookProvider extends ContentProvider {
     private static final int ONE_BOOK_QUERY = 3;
     private static final int ONE_PAGE_QUERY = 4;
     private static final int FAVORITE_BOOKS_QUERY = 5;
-    private static final int ONE_FAVORITE_BOOK_QUERY = 6;
-    private static final int READ_BOOK_QUERY = 7;
-    private static final int ONE_READ_BOOK_QUERY = 8;
+    private static final int BOOK_STATUS_QUERY = 8;
 
     private static final UriMatcher sUriMatcher;
     private static final SparseArray<String> sMimeTypes;
     public static final int BOOKS_LOADER = 0;
-    public static final int READ_BOOKS_LOADER = 1;
+    public static final int BOOK_STATUS_LOADER = 1;
     public static final int BOOK_INFO_LOADER = 2;
     public static final int PAGE_INFO_LOADER = 3;
     public static final int FAVORITE_BOOKS_LOADER = 4;
@@ -50,9 +46,7 @@ public class BookProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME+"/#", ONE_BOOK_QUERY);
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME+"/#", ONE_PAGE_QUERY);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME, FAVORITE_BOOKS_QUERY);
-        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME+"/#", ONE_FAVORITE_BOOK_QUERY);
-        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_READ_BOOKS_NAME, READ_BOOK_QUERY);
-        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_READ_BOOKS_NAME +"/#", ONE_READ_BOOK_QUERY);
+        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_BOOK_STATUS_NAME, BOOK_STATUS_QUERY);
 
         sMimeTypes = new SparseArray<>();
         sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
@@ -67,10 +61,8 @@ public class BookProvider extends ContentProvider {
                 + "." + BookConstants.TABLE_FAVORITE_NAME);
         sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_FAVORITE_NAME);
-        sMimeTypes.put(READ_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
-                + "." + BookConstants.TABLE_READ_BOOKS_NAME);
-        sMimeTypes.put(ONE_READ_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
-                + "." + BookConstants.TABLE_READ_BOOKS_NAME);
+        sMimeTypes.put(BOOK_STATUS_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
+                + "." + BookConstants.TABLE_BOOK_STATUS_NAME);
     }
 
     private DatabaseHelper mDBHelper;
@@ -87,8 +79,6 @@ public class BookProvider extends ContentProvider {
                 return writableDB.delete(BookConstants.TABLE_NAME, selection, selectionArgs);
             case PAGES_QUERY:
                 return writableDB.delete(PageConstants.TABLE_NAME, selection, selectionArgs);
-            case FAVORITE_BOOKS_QUERY:
-                return writableDB.delete(BookConstants.TABLE_FAVORITE_NAME, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException("Insert invalid URI " + uri);
         }
@@ -101,19 +91,7 @@ public class BookProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        switch (sUriMatcher.match(uri)) {
-            case FAVORITE_BOOKS_QUERY:
-                try {
-                    Object[] id = {values.getAsString(BookConstants._ID)};
-                    writableDB.execSQL(DatabaseHelper.SQL_FAVORITE_BOOK, id);
-                }catch (SQLiteException e){
-                    Log.e("BookProvider", "Error while insert Favorite book", e);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Insert invalid URI " + uri);
-        }
-        return null;
+        throw new IllegalArgumentException("Insert invalid URI " + uri);
     }
 
     @Override
@@ -127,7 +105,9 @@ public class BookProvider extends ContentProvider {
                         writableDB.insertOrThrow(BookConstants.TABLE_NAME, null, v);
                         count++;
                     } catch (SQLiteConstraintException e) {
-                        //book url is existed, update book with new info
+                        /*book url is existed, update book with new info
+                        * remove hidden attributes*/
+                        v.put(BookConstants.IS_HIDDEN, false);
                         String whereClause = BookConstants.URL + "=?";
                         String[] whereArgs = { v.getAsString(BookConstants.URL) };
                         writableDB.update(BookConstants.TABLE_NAME, v, whereClause, whereArgs);
@@ -185,13 +165,8 @@ public class BookProvider extends ContentProvider {
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
             case FAVORITE_BOOKS_QUERY:
-                cursor = readableDB.query(BookConstants.TABLE_FAVORITE_NAME, projection, selection, selectionArgs,
+                cursor = readableDB.query(BookConstants.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
-                cursor.setNotificationUri(getContext().getContentResolver(), uri);
-                return cursor;
-            case ONE_FAVORITE_BOOK_QUERY:
-                cursor = readableDB.query(BookConstants.TABLE_FAVORITE_NAME, projection, selection, selectionArgs,
-                        null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
             case PAGES_QUERY:
@@ -204,8 +179,8 @@ public class BookProvider extends ContentProvider {
                         null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
-            case ONE_READ_BOOK_QUERY:
-                cursor = readableDB.query(BookConstants.TABLE_READ_BOOKS_NAME, projection, selection, selectionArgs,
+            case BOOK_STATUS_QUERY:
+                cursor = readableDB.query(BookConstants.TABLE_BOOK_STATUS_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
@@ -229,12 +204,11 @@ public class BookProvider extends ContentProvider {
                 update = writableDB.update(PageConstants.TABLE_NAME, values, selection, selectionArgs);
                 getContext().getContentResolver().notifyChange(uri, null);
                 return update;
-            case READ_BOOK_QUERY:
-            case ONE_READ_BOOK_QUERY:
-                update = writableDB.update(BookConstants.TABLE_READ_BOOKS_NAME, values, selection, selectionArgs);
+            case BOOK_STATUS_QUERY:
+                update = writableDB.update(BookConstants.TABLE_BOOK_STATUS_NAME, values, selection, selectionArgs);
                 if(update<=0){
                     /* no row affected, this book has not read before */
-                    writableDB.insert(BookConstants.TABLE_READ_BOOKS_NAME, null, values);
+                    writableDB.insert(BookConstants.TABLE_BOOK_STATUS_NAME, null, values);
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return update;

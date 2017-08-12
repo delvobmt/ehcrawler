@@ -62,7 +62,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
 
         getSupportLoaderManager().initLoader(BookProvider.BOOK_INFO_LOADER, null, this);
         getSupportLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
-        getSupportLoaderManager().initLoader(BookProvider.READ_BOOKS_LOADER, null, this);
+        getSupportLoaderManager().initLoader(BookProvider.BOOK_STATUS_LOADER, null, this);
     }
 
     @Override
@@ -75,18 +75,14 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         String sortOrder = null;
         switch (id){
             case BookProvider.BOOK_INFO_LOADER:
-                if (TheHolder.getActiveStatus() == EHConstants.FAVORITE_ACTIVE) {
-                    uri = Uri.withAppendedPath(BookProvider.FAVORITE_BOOKS_CONTENT_URI, mId);
-                }else{
-                    uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, mId);
-                }
+                uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, mId);
                 projection = BookConstants.PROJECTION;
                 selection = BookConstants.URL.concat("=?");
                 selectionArgs = new String[]{mURL};
                 break;
-            case BookProvider.READ_BOOKS_LOADER:
-                uri = Uri.withAppendedPath(BookProvider.READ_BOOKS_CONTENT_URI, mId);
-                projection = BookConstants.READ_BOOKS_PROJECTION;
+            case BookProvider.BOOK_STATUS_LOADER:
+                uri = BookProvider.BOOK_STATUS_CONTENT_URI;
+                projection = BookConstants.BOOK_STATUS_PROJECTION;
                 selection = BookConstants.URL.concat("=?");
                 selectionArgs = new String[]{mURL};
                 break;
@@ -106,12 +102,12 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
             case BookProvider.BOOK_INFO_LOADER:
                 setInfoForBook(data);
                 break;
-            case BookProvider.READ_BOOKS_LOADER:
+            case BookProvider.BOOK_STATUS_LOADER:
                 setReadStatus(data);
                 mNeedScroll = true;
                 break;
             case BookProvider.PAGE_INFO_LOADER:
-                mAdapter.changeCursor(data);
+                setPagesInfo(data);
                 break;
         }
         if(mNeedScroll){
@@ -119,6 +115,14 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                     /* in case data is cleared, page data need to reload step by step
                     * we cannot need to call load new data, util it scrolls to position */
             mNeedScroll = data.getCount() < mCurrentPosition;
+        }
+    }
+
+    private void setPagesInfo(Cursor data) {
+        if(data.getCount()<1){
+            getBookDetail();
+        }else {
+            mAdapter.changeCursor(data);
         }
     }
 
@@ -159,6 +163,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     }
 
     private void getBookDetail() {
+        mLoading.setVisibility(View.VISIBLE);
         DatabaseService.startGetBookDetail(this, mId, mURL, "0");
     }
 
@@ -170,7 +175,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.favorite:{
-                DatabaseService.startAddFavoriteBook(this, mId);
+                DatabaseService.startFavoriteBook(this, mId, true);
             }break;
         }
     }

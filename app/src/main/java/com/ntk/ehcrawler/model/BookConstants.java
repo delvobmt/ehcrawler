@@ -6,25 +6,30 @@ public interface BookConstants extends BaseColumns {
 
     String TABLE_NAME = "BOOKS";
     String TABLE_FAVORITE_NAME = "FAVORITE_BOOKS";
-    String TABLE_READ_BOOKS_NAME = "READ_BOOKS";
     String TITLE = "title";
-    int TITLE_INDEX = 1;
     String URL = "url";
-    int URL_INDEX = 2;
     String IMAGE_SRC = "image_src";
-    int IMAGE_SRC_INDEX = 3;
     String FILE_COUNT = "file_count";
-    int FILE_COUNT_INDEX = 4;
     String RATE = "rate";
-    int RATE_INDEX = 5;
     String TYPE = "type";
-    int TYPE_INDEX = 6;
     String DETAIL = "book_info_detail";
-    int DETAIL_INDEX = 7;
     String TAGS = "tags";
-    int TAGS_INDEX = 8;
+    String IS_FAVORITE = "is_favorite";
+    String IS_HIDDEN = "is_hidden";
+
+    String TABLE_BOOK_STATUS_NAME = "BOOK_STATUS";
     String CURRENT_POSITION = "current_position";
-    int CURRENT_POSITION_INDEX = 1;
+    String LAST_READ = "last_read";
+
+    int TITLE_INDEX = 1;
+    int URL_INDEX = 2;
+    int IMAGE_SRC_INDEX = 3;
+    int FILE_COUNT_INDEX = 4;
+    int RATE_INDEX = 5;
+    int TYPE_INDEX = 6;
+    int DETAIL_INDEX = 7;
+    int TAGS_INDEX = 8;
+    int IS_FAVORITE_INDEX = 9;
 
     String[] PROJECTION = {
             _ID,
@@ -35,12 +40,15 @@ public interface BookConstants extends BaseColumns {
             RATE,
             TYPE,
             DETAIL,
-            TAGS
+            TAGS,
+            IS_FAVORITE
     };
-
-    String[] READ_BOOKS_PROJECTION = {
+    int CURRENT_POSITION_INDEX = 2;
+    int LAST_READ_INDEX = 4;
+    String[] BOOK_STATUS_PROJECTION = {
             _ID,
+            URL,
             CURRENT_POSITION,
-            URL
+            LAST_READ
     };
 }
