@@ -23,8 +23,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                     + BookConstants.TYPE + " TEXT,"
                     + BookConstants.DETAIL + " TEXT,"
                     + BookConstants.TAGS + " TEXT,"
-                    + BookConstants.IS_FAVORITE + " INT,"
-                    + BookConstants.IS_HIDDEN + " INT)",
+                    + BookConstants.IS_FAVORITE + " INT DEFAULT 0,"
+                    + BookConstants.IS_HIDDEN + " INT DEFAULT 0)",
             "CREATE TABLE " + BookConstants.TABLE_BOOK_STATUS_NAME
                     + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
                     + BookConstants.URL + " TEXT UNIQUE,"
@@ -34,7 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
             "CREATE TABLE " + PageConstants.TABLE_NAME
                     + " (" + PageConstants._ID + " INTEGER PRIMARY KEY,"
                     + PageConstants.BOOK_URL + " TEXT,"
-                    + PageConstants.URL + " TEXT,"
+                    + PageConstants.URL + " TEXT UNIQUE,"
                     + PageConstants.THUMB_SRC + " TEXT,"
                     + PageConstants.SRC + " TEXT,"
                     + PageConstants.NEWLINK + " TEXT);"

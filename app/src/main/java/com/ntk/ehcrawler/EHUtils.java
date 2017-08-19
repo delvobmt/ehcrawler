@@ -47,10 +47,11 @@ public class EHUtils {
 		}
 	}
 
-	public static void getBookInfo(String url, String pageIndex) throws IOException {
+	public static Book getBookInfo(String url, String pageIndex) throws IOException {
 		Book book = new Book();
 		book.setUrl(url);
 		getBookInfo(book, pageIndex);
+		return book;
 	}
 
 	public static void getBookInfo(Book book, String pageIndex) throws IOException {

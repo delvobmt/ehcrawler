@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
@@ -22,11 +21,18 @@ import com.squareup.picasso.Picasso;
 
 public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHolder> {
     private final Context mContext;
+    private boolean loadNewAtEndPage = false;
 
     public BookAdapter(Context context) {
         super(context, null);
         mContext = context;
     }
+
+    public BookAdapter(Context context, boolean loadNewAtEndPage) {
+        this(context);
+        this.loadNewAtEndPage = loadNewAtEndPage;
+    }
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.book_view, null);
@@ -37,7 +43,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
     public void onBindViewHolder(RecyclerView.ViewHolder holder, Cursor cursor) {
         int position = cursor.getPosition()+1;
         int count = cursor.getCount();
-        if(position == count){
+        if(position == count && loadNewAtEndPage){
             int pageIndex = position/ EHConstants.BOOKS_PER_PAGE;
             DatabaseService.startGetBook(mContext, String.valueOf(pageIndex));
         }

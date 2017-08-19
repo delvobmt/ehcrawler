@@ -111,7 +111,6 @@ public class BookProvider extends ContentProvider {
                         String whereClause = BookConstants.URL + "=?";
                         String[] whereArgs = { v.getAsString(BookConstants.URL) };
                         writableDB.update(BookConstants.TABLE_NAME, v, whereClause, whereArgs);
-                        count++;
                     }
                 }
                 writableDB.setTransactionSuccessful();
