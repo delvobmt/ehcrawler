@@ -13,7 +13,7 @@ import com.ntk.ehcrawler.model.BookConstants;
 public class FavoriteBookFragment extends BookFragment {
 
     @Override
-    protected void initloader() {
+    protected void initLoader() {
         getLoaderManager().initLoader(BookProvider.FAVORITE_BOOKS_LOADER, null, this);
     }
 

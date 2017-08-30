@@ -41,12 +41,6 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, Cursor cursor) {
-        int position = cursor.getPosition()+1;
-        int count = cursor.getCount();
-        if(position == count && loadNewAtEndPage){
-            int pageIndex = position/ EHConstants.BOOKS_PER_PAGE;
-            DatabaseService.startGetBook(mContext, String.valueOf(pageIndex));
-        }
         View view = holder.itemView;
         final ImageView mImage = (ImageView) view.findViewById(R.id.image_iv);
         final TextView mTitle = (TextView) view.findViewById(R.id.title_tv);
@@ -89,5 +83,13 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
                 mContext.startActivity(intent);
             }
         });
+
+        /* prepare new data for next page*/
+        int position = cursor.getPosition()+1;
+        int count = cursor.getCount();
+        if(position == count && loadNewAtEndPage){
+            int pageIndex = position/ EHConstants.BOOKS_PER_PAGE;
+            DatabaseService.startGetBook(mContext, String.valueOf(pageIndex));
+        }
     }
 }

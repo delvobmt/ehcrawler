@@ -17,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.adapters.BookAdapter;
@@ -62,7 +63,7 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         mRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
         mRefreshLayout.setOnRefreshListener(this);
 
-        initloader();
+        initLoader();
 
         return view;
     }
@@ -71,7 +72,7 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         return true;
     }
 
-    protected void initloader(){
+    protected void initLoader(){
         getLoaderManager().initLoader(BookProvider.BOOKS_LOADER, null, this);
     }
 
@@ -113,6 +114,7 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         filterMap.put(SEARCH_KEY, String.valueOf(f_search));
         DatabaseService.setFilterMap(filterMap);
         if (mChanged) {
+            Toast.makeText(getActivity(),"applying search option",Toast.LENGTH_SHORT).show();
             getNewData();
         }
     }

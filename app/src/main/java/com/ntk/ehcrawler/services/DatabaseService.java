@@ -30,12 +30,20 @@ public class DatabaseService extends IntentService {
     public static final String LOG_TAG = DatabaseService.class.getSimpleName();
 
     private static Map<String, String> filterMap;
+    private static int pageIndex = -1;
 
     public DatabaseService() {
         super("DatabaseService");
     }
 
     public static void startGetBook(Context context, String pageIndex) {
+        int index = Integer.valueOf(pageIndex);
+        if(DatabaseService.pageIndex == index){
+            /* don't no reload this page */
+            return;
+        }else{
+            DatabaseService.pageIndex = index;
+        }
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_GET_BOOKS);
         intent.putExtra(EHConstants.PAGE_INDEX, pageIndex);
@@ -82,6 +90,8 @@ public class DatabaseService extends IntentService {
     }
 
     public static void setFilterMap(Map<String, String> filterMap) {
+        /* reset page Index */
+        DatabaseService.pageIndex = -1;
         DatabaseService.filterMap = filterMap;
     }
 
@@ -122,7 +132,7 @@ public class DatabaseService extends IntentService {
         String[] selectionArgs = {id};
         Uri uri = BookProvider.BOOKS_CONTENT_URI;
         getContentResolver().update(uri, contentValues, selection, selectionArgs);
-        Log.d(LOG_TAG, "Favorite book " + contentValues.valueSet() + " id=" + id);
+        Log.i(LOG_TAG, "Favorite book " + contentValues.valueSet() + " id=" + id);
     }
 
     private void updateBookPosition(String url, int position) {
@@ -134,7 +144,7 @@ public class DatabaseService extends IntentService {
         String[] selectionArgs = {url};
         Uri uri = BookProvider.BOOK_STATUS_CONTENT_URI;
         getContentResolver().update(uri, contentValues, selection, selectionArgs);
-        Log.d(LOG_TAG, "Update book " + contentValues.valueSet() + " url=" + url);
+        Log.i(LOG_TAG, "Update book " + contentValues.valueSet() + " url=" + url);
     }
 
     private void getPageData(String id, String url, String nl) {
@@ -143,7 +153,7 @@ public class DatabaseService extends IntentService {
         String selection = PageConstants.URL + "=?";
         String[] selectionArgs = {url};
         int update = getContentResolver().update(uri, contentValues, selection, selectionArgs);
-        Log.d(LOG_TAG, "get " + update + " url=" + url + " nl=" + nl);
+        Log.i(LOG_TAG, "get " + update + " url=" + url + " nl=" + nl);
     }
 
     private void getBookDetail(String id, String url, String pageIndex) {
@@ -183,7 +193,7 @@ public class DatabaseService extends IntentService {
             String selection = BookConstants.URL + "=?";
             String[] selectionArgs = {url};
             getContentResolver().update(uri, contentValues, selection, selectionArgs);
-            Log.d(LOG_TAG, "update book details url = " + url);
+            Log.i(LOG_TAG, "update book details url = " + url);
         }
         //insert page info
         Map<String, String> pageMap = book.getPageMap();
@@ -198,7 +208,7 @@ public class DatabaseService extends IntentService {
             i++;
         }
         int insert = getContentResolver().bulkInsert(BookProvider.PAGES_CONTENT_URI, pageValues);
-        Log.d(LOG_TAG, "Inserted " + insert + " new pages on page " + pageIndex);
+        Log.i(LOG_TAG, "Inserted " + insert + " new pages on page " + pageIndex);
     }
 
     private void getBooks(String pageIndex) {
@@ -219,18 +229,18 @@ public class DatabaseService extends IntentService {
             String where = BookConstants.IS_FAVORITE + "!=?";
             String[] whereArgs = {"1"};
             int delete = getContentResolver().delete(BookProvider.BOOKS_CONTENT_URI, where, whereArgs);
-            Log.d(LOG_TAG, "Deleted " + delete + " books");
+            Log.i(LOG_TAG, "Deleted " + delete + " books");
 
             /* set hidden on all kept books, it will be unhidden when appeared in new data list*/
             ContentValues values = new ContentValues();
             values.put(BookConstants.IS_HIDDEN, true);
             int update = getContentResolver().update(BookProvider.BOOKS_CONTENT_URI, values, null, null);
-            Log.d(LOG_TAG, "Hided " + update + " books");
+            Log.i(LOG_TAG, "Hided " + update + " books");
 
             int delete1 = getContentResolver().delete(BookProvider.PAGES_CONTENT_URI, null, null);
-            Log.d(LOG_TAG, "Deleted " + delete1 + " Pages");
+            Log.i(LOG_TAG, "Deleted " + delete1 + " Pages");
         }
         int insert = getContentResolver().bulkInsert(BookProvider.BOOKS_CONTENT_URI, valuesArray);
-        Log.d(LOG_TAG, "inserted " + insert + " new books");
+        Log.i(LOG_TAG, "inserted " + insert + " new books");
     }
 }
