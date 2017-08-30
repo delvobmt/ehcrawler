@@ -67,12 +67,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/favorite"
+        android:id="@+id/fab_favorite"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@drawable/star" />
+        app:srcCompat="@drawable/ic_favorite"
+        android:visibility="gone"/>
 
 </android.support.design.widget.CoordinatorLayout>

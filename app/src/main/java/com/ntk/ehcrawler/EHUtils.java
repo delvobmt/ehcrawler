@@ -9,7 +9,6 @@ import com.ntk.ehcrawler.model.PageConstants;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -22,14 +21,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 public class EHUtils {
 
 	public static ContentValues getPageData(String pageUrl, String newLink) {
 		ContentValues contentValues = new ContentValues();
 		try {
-            Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
+            Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
 			Connection connection = Jsoup.connect(pageUrl).cookies(cookies);
 			if(!TextUtils.isEmpty(newLink)){
 				connection.data(EHConstants.NEWLINK_PARAM, newLink);
@@ -55,7 +53,7 @@ public class EHUtils {
 	}
 
 	public static void getBookInfo(Book book, String pageIndex) throws IOException {
-		Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
+		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
 		String url = book.getUrl();
 		Document doc = Jsoup.connect(url).data(EHConstants.PAGE_PAGE_PARAM, pageIndex).cookies(cookies).get();
 		//get detail info
@@ -91,7 +89,7 @@ public class EHUtils {
 	}
 
 	public static List<Book> getBooks(String pageIndex, Map<String, String> filters) {
-		Map<String, String> cookies = prepareCookies(TheHolder.getCookies());
+		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
 		try {
 			Connection connection = Jsoup.connect(EHConstants.HOST);
 			if (!"0".equals(pageIndex)) {
@@ -131,7 +129,7 @@ public class EHUtils {
 		if (!cookies.containsKey("nw")){
 			cookies.put("nw", "1");
 		}
-		TheHolder.setCookies(cookies);
+		ContextHolder.setCookies(cookies);
 		return cookies;
 	}
 

@@ -5,7 +5,6 @@ import android.provider.BaseColumns;
 public interface BookConstants extends BaseColumns {
 
     String TABLE_NAME = "BOOKS";
-    String TABLE_FAVORITE_NAME = "FAVORITE_BOOKS";
     String TITLE = "title";
     String URL = "url";
     String IMAGE_SRC = "image_src";

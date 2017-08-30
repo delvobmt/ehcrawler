@@ -17,8 +17,6 @@ public class BookProvider extends ContentProvider {
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final Uri BOOKS_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, BookConstants.TABLE_NAME);
-    public static final Uri FAVORITE_BOOKS_CONTENT_URI = Uri.withAppendedPath(
-            CONTENT_URI, BookConstants.TABLE_FAVORITE_NAME);
     public static final Uri BOOK_STATUS_CONTENT_URI = Uri.withAppendedPath(
             CONTENT_URI, BookConstants.TABLE_BOOK_STATUS_NAME);
     public static final Uri PAGES_CONTENT_URI = Uri.withAppendedPath(
@@ -45,7 +43,6 @@ public class BookProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME, PAGES_QUERY);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_NAME+"/#", ONE_BOOK_QUERY);
         sUriMatcher.addURI(AUTHORITY, PageConstants.TABLE_NAME+"/#", ONE_PAGE_QUERY);
-        sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_FAVORITE_NAME, FAVORITE_BOOKS_QUERY);
         sUriMatcher.addURI(AUTHORITY, BookConstants.TABLE_BOOK_STATUS_NAME, BOOK_STATUS_QUERY);
 
         sMimeTypes = new SparseArray<>();
@@ -57,10 +54,6 @@ public class BookProvider extends ContentProvider {
                 + "." + BookConstants.TABLE_NAME);
         sMimeTypes.put(ONE_PAGE_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + PageConstants.TABLE_NAME);
-        sMimeTypes.put(BOOKS_QUERY, "vnd.android.cursor.dir/vnd." + AUTHORITY
-                + "." + BookConstants.TABLE_FAVORITE_NAME);
-        sMimeTypes.put(ONE_BOOK_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
-                + "." + BookConstants.TABLE_FAVORITE_NAME);
         sMimeTypes.put(BOOK_STATUS_QUERY, "vnd.android.cursor.item/vnd." + AUTHORITY
                 + "." + BookConstants.TABLE_BOOK_STATUS_NAME);
     }

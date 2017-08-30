@@ -11,13 +11,14 @@
     <android.support.v4.view.ViewPager
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black_overlay">
+        android:layout_height="match_parent">
 
         <android.support.design.widget.TabLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/black_overlay"
+            android:background="@color/colorPrimary"
+            app:tabTextColor="@android:color/white"
+            app:tabSelectedTextColor="@android:color/holo_green_light"
             app:tabGravity="fill"
             app:tabMode="fixed">
         </android.support.design.widget.TabLayout>
@@ -27,9 +28,10 @@
         android:id="@+id/fab_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
         android:src="@android:drawable/ic_search_category_default"
         app:fabSize="normal"
         app:layout_anchor="@id/view_pager"
-        app:layout_anchorGravity="bottom|right|end"/>
+        app:layout_anchorGravity="bottom|end"/>
 
 </android.support.constraint.ConstraintLayout>

@@ -2,9 +2,8 @@ package com.ntk.ehcrawler;
 
 import java.util.Map;
 
-public class TheHolder {
+public class ContextHolder {
 	private static Map<String, String> cookies;
-	private static int activeStatus = EHConstants.NO_ACTIVE;
 	private static int width;
 	private static int height;
 
@@ -21,7 +20,7 @@ public class TheHolder {
 	}
 
 	public static void setHeight(int height) {
-		TheHolder.height = height;
+		ContextHolder.height = height;
 	}
 
 	public static int getScreenWidth() {
@@ -29,14 +28,7 @@ public class TheHolder {
 	}
 
 	public static void setWidth(int width) {
-		TheHolder.width = width;
+		ContextHolder.width = width;
 	}
 
-	public static int getActiveStatus() {
-		return activeStatus;
-	}
-
-	public static void setActiveStatus(int activeStatus) {
-		TheHolder.activeStatus = activeStatus;
-	}
 }

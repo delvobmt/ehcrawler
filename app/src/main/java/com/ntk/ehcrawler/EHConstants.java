@@ -64,8 +64,4 @@ public interface EHConstants {
 	String POSITION = "position";
 
 	String SEARCH_PREFERENCES = "search_references";
-	String FAVORITE_FLAG = "favorite";
-
-	int NO_ACTIVE = 0;
-	int FAVORITE_ACTIVE = 1;
 }

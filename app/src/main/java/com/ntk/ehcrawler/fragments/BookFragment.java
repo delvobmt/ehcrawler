@@ -14,6 +14,7 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ import static com.ntk.ehcrawler.EHConstants.SEARCH_PREFERENCES;
 
 public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final String LOG_TAG = "LOG_" + BookFragment.class.getSimpleName();
     protected RecyclerView mBooksView;
     protected RecyclerView.LayoutManager mLayoutManager;
     protected BookAdapter mAdapter;
@@ -42,6 +44,8 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     protected Map<String, String> filterMap = new HashMap<>();
     protected boolean mChanged;
     protected boolean mLoaded;
+
+    private static final String CUR_POSITION = "cur_position";
 
     public BookFragment() {
         // Required empty public constructor
@@ -78,12 +82,30 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     @Override
     public void onDestroy() {
-        destroyLoader();
+        destroy();
         super.onDestroy();
     }
 
-    protected void destroyLoader(){
+    protected void destroy(){
         getLoaderManager().destroyLoader(BookProvider.BOOKS_LOADER);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        saveCurrentPosition();
+    }
+
+    protected void saveCurrentPosition() {
+        SharedPreferences.Editor editor = getActivity()
+                .getSharedPreferences(SEARCH_PREFERENCES, Activity.MODE_PRIVATE).edit();
+        Cursor cursor = mAdapter.getCursor();
+        if(cursor!=null) {
+            int position = cursor.getPosition();
+            editor.putInt(CUR_POSITION, position);
+            editor.commit();
+            Log.i(LOG_TAG, "saved current position: " + position);
+        }
     }
 
     @Override
@@ -160,6 +182,13 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 synchronized (mRefreshLayout) {
                     mRefreshLayout.setRefreshing(mChanged);
                     mChanged = false;
+                    int curPosition = data.getPosition();
+                    SharedPreferences preferences = getActivity().getSharedPreferences(SEARCH_PREFERENCES, Activity.MODE_PRIVATE);
+                    int position = preferences.getInt(CUR_POSITION, 0);
+                    if(curPosition == -1 && position !=0) {
+                        Log.i(LOG_TAG, "move to position: " + position);
+                        mBooksView.smoothScrollToPosition(position);
+                    }
                 }
             }
         }

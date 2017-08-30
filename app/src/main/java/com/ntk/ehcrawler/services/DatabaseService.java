@@ -9,7 +9,6 @@ import android.util.Log;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.EHUtils;
-import com.ntk.ehcrawler.TheHolder;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
@@ -27,7 +26,7 @@ public class DatabaseService extends IntentService {
     private static final String ACTION_GET_PAGE_IMAGE = "GET_BOOK_IMAGE";
     private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
     private static final String ACTION_FAVORITE_BOOK = "FAVORITE_BOOK";
-    public static final String LOG_TAG = DatabaseService.class.getSimpleName();
+    public static final String LOG_TAG = "LOG_"+DatabaseService.class.getSimpleName();
 
     private static Map<String, String> filterMap;
     private static int pageIndex = -1;

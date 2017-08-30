@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.ntk.ehcrawler.R;
-import com.ntk.ehcrawler.TheHolder;
+import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
@@ -59,8 +59,8 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
 
     private void bindView(final String imageSrc) {
         final int imageWidth;
-        final int targetWidth = TheHolder.getScreenWidth();
-        final int targetHeight = TheHolder.getScreenHeight();
+        final int targetWidth = ContextHolder.getScreenWidth();
+        final int targetHeight = ContextHolder.getScreenHeight();
         //landscape force screen
         if(targetWidth>targetHeight) {
             imageWidth = targetWidth;

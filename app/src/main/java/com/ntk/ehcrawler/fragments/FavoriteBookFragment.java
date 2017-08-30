@@ -18,13 +18,18 @@ public class FavoriteBookFragment extends BookFragment {
     }
 
     @Override
-    protected void destroyLoader() {
+    protected void destroy() {
         getLoaderManager().destroyLoader(BookProvider.FAVORITE_BOOKS_LOADER);
     }
 
     @Override
     protected void loadFilter() {
         //do nothing
+    }
+
+    @Override
+    protected void saveCurrentPosition() {
+//        do nothing
     }
 
     @Override

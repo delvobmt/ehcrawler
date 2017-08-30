@@ -2,6 +2,7 @@ package com.ntk.ehcrawler.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,9 +20,7 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
-import com.ntk.ehcrawler.TheHolder;
 import com.ntk.ehcrawler.adapters.ThumbAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
@@ -29,7 +28,7 @@ import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Picasso;
 
-public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
+public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private String mURL;
     private RecyclerView mThumbView;
@@ -50,12 +49,10 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.favorite);
-        fab.setOnClickListener(this);
         mThumbView = (RecyclerView) findViewById(R.id.gallery_thumbnails_rv);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
         mThumbView.setLayoutManager(layoutManager);
-        mAdapter = new ThumbAdapter(this, bookSize, TheHolder.getActiveStatus() == EHConstants.FAVORITE_ACTIVE);
+        mAdapter = new ThumbAdapter(this, bookSize);
         mThumbView.setAdapter(mAdapter);
 
         mLoading = findViewById(R.id.loading);
@@ -136,13 +133,25 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         mId = data.getString(0);
         String detail = data.getString(BookConstants.DETAIL_INDEX);
         String tags = data.getString(BookConstants.TAGS_INDEX);
+        final Boolean isFavorite = data.getInt(BookConstants.IS_FAVORITE_INDEX)==1;
 
-        if (TextUtils.isEmpty(detail)) {
-            getBookDetail();
-        } else {
+        if (!TextUtils.isEmpty(detail)) {
             final ImageView mCover = (ImageView) findViewById(R.id.cover_iv);
             final TextView mDetail = (TextView) findViewById(R.id.details_tv);
             final TextView mTags = (TextView) findViewById(R.id.tags_tv);
+            final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_favorite);
+            fab.setOnClickListener( new View.OnClickListener(){
+
+                @Override
+                public void onClick(View view) {
+                    DatabaseService.startFavoriteBook(GalleryActivity.this, mId, !isFavorite);
+                    fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(
+                            !isFavorite ? R.color.colorAccent : R.color.colorPrimaryDark)));
+                }
+            });
+            fab.setVisibility(View.VISIBLE);
+            fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(
+                    isFavorite ? R.color.colorAccent : R.color.colorPrimaryDark)));
 
             final String imageSrc = data.getString(BookConstants.IMAGE_SRC_INDEX);
             mCover.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -169,14 +178,5 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.favorite:{
-                DatabaseService.startFavoriteBook(this, mId, true);
-            }break;
-        }
     }
 }

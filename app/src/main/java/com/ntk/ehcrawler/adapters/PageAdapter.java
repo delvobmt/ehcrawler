@@ -11,9 +11,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.ntk.ehcrawler.R;
-import com.ntk.ehcrawler.TheHolder;
+import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.model.PageConstants;
-import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
@@ -31,8 +30,8 @@ public class PageAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
         View view = viewHolder.itemView;
         final View mLoading = view.findViewById(R.id.loading);
         final ImageView mImage = (ImageView) view.findViewById(R.id.image_iv);
-        final int targetWidth = TheHolder.getScreenWidth();
-        final int targetHeight = TheHolder.getScreenHeight();
+        final int targetWidth = ContextHolder.getScreenWidth();
+        final int targetHeight = ContextHolder.getScreenHeight();
         //landscape force screen
         if(targetWidth>targetHeight) {
             mImage.setMinimumWidth(targetWidth);

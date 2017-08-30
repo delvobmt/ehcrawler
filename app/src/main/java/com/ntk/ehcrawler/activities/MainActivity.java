@@ -12,7 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.ntk.ehcrawler.R;
-import com.ntk.ehcrawler.TheHolder;
+import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.fragments.BookFragment;
 import com.ntk.ehcrawler.fragments.FavoriteBookFragment;
 
@@ -25,14 +25,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Point point = new Point();
         getWindowManager().getDefaultDisplay().getSize(point);
-        TheHolder.setWidth(point.x);
-        TheHolder.setHeight(point.y);
+        ContextHolder.setWidth(point.x);
+        ContextHolder.setHeight(point.y);
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.view_pager);
         viewPager.setAdapter(new BookTabPageAdapter(getSupportFragmentManager()));
 
-        View fabSearch = findViewById(R.id.fab_search);
+
+        final View fabSearch = findViewById(R.id.fab_search);
         fabSearch.setOnClickListener(this);
+        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                fabSearch.setVisibility(position == 0 ? View.VISIBLE : View.INVISIBLE);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
     @Override

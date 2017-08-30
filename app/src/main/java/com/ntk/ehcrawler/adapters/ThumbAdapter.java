@@ -25,7 +25,7 @@ public class ThumbAdapter extends CursorRecyclerViewAdapter{
     private final Context mContext;
     private final int mSize;
 
-    public ThumbAdapter(Context context, int size, boolean favorite) {
+    public ThumbAdapter(Context context, int size) {
         super(context, null);
         this.mContext = context;
         this.mSize = size;
