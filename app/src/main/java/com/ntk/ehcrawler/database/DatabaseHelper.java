@@ -24,13 +24,13 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                     + BookConstants.DETAIL + " TEXT,"
                     + BookConstants.TAGS + " TEXT,"
                     + BookConstants.IS_FAVORITE + " INT DEFAULT 0,"
-                    + BookConstants.IS_HIDDEN + " INT DEFAULT 0)",
+                    + BookConstants.IS_HIDDEN + " INT DEFAULT 0,"
+                    + BookConstants.MODIFY_TIME + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
             "CREATE TABLE " + BookConstants.TABLE_BOOK_STATUS_NAME
                     + " (" + BookConstants._ID + " INTEGER PRIMARY KEY,"
                     + BookConstants.URL + " TEXT UNIQUE,"
                     + BookConstants.CURRENT_POSITION + " INT,"
-                    + BookConstants.IS_FAVORITE + " INT,"
-                    + BookConstants.LAST_READ + " INT)",
+                    + BookConstants.LAST_READ + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
             "CREATE TABLE " + PageConstants.TABLE_NAME
                     + " (" + PageConstants._ID + " INTEGER PRIMARY KEY,"
                     + PageConstants.BOOK_URL + " TEXT,"

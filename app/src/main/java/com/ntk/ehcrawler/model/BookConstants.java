@@ -15,6 +15,7 @@ public interface BookConstants extends BaseColumns {
     String TAGS = "tags";
     String IS_FAVORITE = "is_favorite";
     String IS_HIDDEN = "is_hidden";
+    String MODIFY_TIME = "modify_time";
 
     String TABLE_BOOK_STATUS_NAME = "BOOK_STATUS";
     String CURRENT_POSITION = "current_position";

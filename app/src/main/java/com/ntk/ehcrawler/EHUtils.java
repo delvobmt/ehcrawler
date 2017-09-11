@@ -24,6 +24,8 @@ import java.util.Set;
 
 public class EHUtils {
 
+	private static final String LOG_TAG = "LOG_" + EHUtils.class.getSimpleName();
+
 	public static ContentValues getPageData(String pageUrl, String newLink) {
 		ContentValues contentValues = new ContentValues();
 		try {
@@ -40,7 +42,7 @@ public class EHUtils {
 			contentValues.put(PageConstants.NEWLINK, nl);
 			return contentValues;
 		} catch (IOException e) {
-			Log.w(EHUtils.class.getSimpleName(), "Error while getPageData()", e);
+			Log.w(LOG_TAG, "Error while getPageData()", e);
 			return null;
 		}
 	}
@@ -111,10 +113,10 @@ public class EHUtils {
 				Book book = new Book(title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
 				books.add(book);
 			}
-			Log.i("EHUtils", "get books success at page " + pageIndex + " with " + books.size() + " items");
+			Log.i(LOG_TAG, "get books success at page " + pageIndex + " with " + books.size() + " items");
 			return books;
 		} catch (IOException e) {
-			Log.e("EHUtils", "Error while getting books", e);
+			Log.e(LOG_TAG, "Error while getting books", e);
 			return Collections.emptyList();
 		}
 	}
@@ -137,7 +139,7 @@ public class EHUtils {
 		Connection connection = Jsoup.connect(EHConstants.HOST);
 		try {
 			Map<String, String> cookies = connection.execute().cookies();
-			System.out.println(String.format("_getCookies_ return %s", cookies));
+			Log.i(LOG_TAG, String.format("_getCookies_ return %s", cookies));
 			return cookies;
 		} catch (IOException e) {
 			return Collections.emptyMap();

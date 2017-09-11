@@ -26,7 +26,7 @@ public class DatabaseService extends IntentService {
     private static final String ACTION_GET_PAGE_IMAGE = "GET_BOOK_IMAGE";
     private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
     private static final String ACTION_FAVORITE_BOOK = "FAVORITE_BOOK";
-    public static final String LOG_TAG = "LOG_"+DatabaseService.class.getSimpleName();
+    private static final String LOG_TAG = "LOG_"+DatabaseService.class.getSimpleName();
 
     private static Map<String, String> filterMap;
     private static int pageIndex = -1;
