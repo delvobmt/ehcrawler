@@ -64,12 +64,13 @@ public class ThumbAdapter extends CursorRecyclerViewAdapter{
 
             @Override
             public void onBitmapFailed(Drawable errorDrawable) {
-
+                mThumb.setImageDrawable(errorDrawable);
+                mLoading.setVisibility(View.GONE);
             }
 
             @Override
             public void onPrepareLoad(Drawable placeHolderDrawable) {
-
+                mThumb.setImageDrawable(placeHolderDrawable);
             }
         };
         //keep target reference with imageView

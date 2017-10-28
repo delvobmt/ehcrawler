@@ -28,11 +28,6 @@ public class FavoriteBookFragment extends BookFragment {
     }
 
     @Override
-    protected void saveCurrentPosition() {
-//        do nothing
-    }
-
-    @Override
     protected boolean isLoadAtEndingPage() {
         return false;
     }

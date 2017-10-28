@@ -15,6 +15,7 @@ import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.fragments.BookFragment;
 import com.ntk.ehcrawler.fragments.FavoriteBookFragment;
+import com.ntk.ehcrawler.services.DatabaseService;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -22,6 +23,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DatabaseService.startClearPageSrc(this);
 
         Point point = new Point();
         getWindowManager().getDefaultDisplay().getSize(point);

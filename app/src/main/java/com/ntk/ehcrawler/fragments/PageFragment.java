@@ -10,6 +10,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ import com.squareup.picasso.Transformation;
 
 public class PageFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
+    private static final String LOG_TAG = "LOG_"+PageFragment.class.getSimpleName();
     private ImageView mImage;
     private View mLoading;
     private String mUrl;
@@ -98,6 +100,7 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
 
             @Override
             public void onError() {
+                mLoading.setVisibility(View.GONE);
             }
         });
     }
@@ -119,6 +122,7 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
             mNl = data.getString(PageConstants.NEWLINK_INDEX);
             if (!TextUtils.isEmpty(mSrc)) {
                 bindView(mSrc);
+                Log.d(LOG_TAG, "bindView() " + mSrc);
             }
         }
     }

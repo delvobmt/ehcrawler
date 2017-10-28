@@ -26,6 +26,8 @@ public class DatabaseService extends IntentService {
     private static final String ACTION_GET_PAGE_IMAGE = "GET_BOOK_IMAGE";
     private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
     private static final String ACTION_FAVORITE_BOOK = "FAVORITE_BOOK";
+    private static final String ACTION_CLEAR_PAGE_SRC = "CLEAR_PAGE_SRC";
+
     private static final String LOG_TAG = "LOG_"+DatabaseService.class.getSimpleName();
 
     private static Map<String, String> filterMap;
@@ -33,6 +35,12 @@ public class DatabaseService extends IntentService {
 
     public DatabaseService() {
         super("DatabaseService");
+    }
+
+    public static void startClearPageSrc(Context context){
+        Intent intent = new Intent(context, DatabaseService.class);
+        intent.setAction(ACTION_CLEAR_PAGE_SRC);
+        context.startService(intent);
     }
 
     public static void startGetBook(Context context, String pageIndex) {
@@ -98,7 +106,9 @@ public class DatabaseService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
-            if (ACTION_GET_BOOKS.equals(action)) {
+            if(ACTION_CLEAR_PAGE_SRC.equals(action)) {
+                clearPageSrc();
+            } else if (ACTION_GET_BOOKS.equals(action)) {
                 String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
                 getBooks(pageIndex);
             } else if (ACTION_GET_BOOK_DETAILS.equals(action)) {
@@ -121,6 +131,16 @@ public class DatabaseService extends IntentService {
                 favoriteBook(id, favorite);
             }
         }
+    }
+
+    private void clearPageSrc(){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(PageConstants.SRC, "");
+        String selection = null;
+        String[] selectionArgs = null;
+        Uri uri = BookProvider.PAGES_CONTENT_URI;
+        getContentResolver().update(uri, contentValues, selection, selectionArgs);
+        Log.i(LOG_TAG, "Clear all page src!");
     }
 
     private void favoriteBook(String id, boolean favorite) {

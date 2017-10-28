@@ -108,7 +108,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                 break;
         }
         if(mNeedScroll){
-            mThumbView.smoothScrollToPosition(mCurrentPosition);
+            mThumbView.smoothScrollToPosition(mCurrentPosition+3);
                     /* in case data is cleared, page data need to reload step by step
                     * we cannot need to call load new data, util it scrolls to position */
             mNeedScroll = data.getCount() < mCurrentPosition;

@@ -1,15 +1,19 @@
 package com.ntk.ehcrawler.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
@@ -19,9 +23,12 @@ import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import static com.ntk.ehcrawler.EHConstants.SEARCH_PREFERENCES;
+
 public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHolder> {
     private final Context mContext;
     private boolean loadNewAtEndPage = false;
+    private static final String LOG_TAG = BookAdapter.class.getSimpleName();
 
     public BookAdapter(Context context) {
         super(context, null);
@@ -40,7 +47,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, Cursor cursor) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final Cursor cursor) {
         View view = holder.itemView;
         final ImageView mImage = (ImageView) view.findViewById(R.id.image_iv);
         final TextView mTitle = (TextView) view.findViewById(R.id.title_tv);
@@ -64,6 +71,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
 
             @Override
             public void onError() {
+                mLoading.setVisibility(View.GONE);
             }
         });
         mTitle.setText(title);
@@ -81,6 +89,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
                 intent.putExtra(BookConstants.URL, url);
                 intent.putExtra(BookConstants.FILE_COUNT, fileCount);
                 mContext.startActivity(intent);
+                saveCurrentPosition(cursor.getPosition());
             }
         });
 
@@ -91,5 +100,13 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
             int pageIndex = position/ EHConstants.BOOKS_PER_PAGE;
             DatabaseService.startGetBook(mContext, String.valueOf(pageIndex));
         }
+    }
+
+    protected void saveCurrentPosition(int position) {
+        SharedPreferences.Editor editor = mContext
+                .getSharedPreferences(SEARCH_PREFERENCES, Activity.MODE_PRIVATE).edit();
+        editor.putInt(EHConstants.CUR_POSITION, position);
+        editor.commit();
+        Log.i(LOG_TAG, "saved current position: " + position);
     }
 }

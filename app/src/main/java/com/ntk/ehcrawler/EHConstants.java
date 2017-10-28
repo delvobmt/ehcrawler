@@ -64,4 +64,5 @@ public interface EHConstants {
 	String POSITION = "position";
 
 	String SEARCH_PREFERENCES = "search_references";
+	String CUR_POSITION = "cur_position";
 }
