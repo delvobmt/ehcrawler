@@ -1,11 +1,16 @@
 package com.ntk.ehcrawler.services;
 
+import android.app.DownloadManager;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.DataSetObserver;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.EHUtils;
@@ -14,7 +19,9 @@ import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +34,7 @@ public class DatabaseService extends IntentService {
     private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
     private static final String ACTION_FAVORITE_BOOK = "FAVORITE_BOOK";
     private static final String ACTION_CLEAR_PAGE_SRC = "CLEAR_PAGE_SRC";
+    private static final String ACTION_DOWNLOAD_BOOK = "DOWNLOAD_BOOK";
 
     private static final String LOG_TAG = "LOG_"+DatabaseService.class.getSimpleName();
 
@@ -40,6 +48,13 @@ public class DatabaseService extends IntentService {
     public static void startClearPageSrc(Context context){
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_CLEAR_PAGE_SRC);
+        context.startService(intent);
+    }
+
+    public static void startDownloadBook(Context context, String mURL) {
+        Intent intent = new Intent(context, DatabaseService.class);
+        intent.setAction(ACTION_DOWNLOAD_BOOK);
+        intent.putExtra(BookConstants.URL, mURL);
         context.startService(intent);
     }
 
@@ -108,6 +123,9 @@ public class DatabaseService extends IntentService {
             final String action = intent.getAction();
             if(ACTION_CLEAR_PAGE_SRC.equals(action)) {
                 clearPageSrc();
+            } else if (ACTION_DOWNLOAD_BOOK.equals(action)){
+                String bookURL = intent.getStringExtra(BookConstants.URL);
+                downloadBook(bookURL);
             } else if (ACTION_GET_BOOKS.equals(action)) {
                 String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
                 getBooks(pageIndex);
@@ -228,6 +246,57 @@ public class DatabaseService extends IntentService {
         }
         int insert = getContentResolver().bulkInsert(BookProvider.PAGES_CONTENT_URI, pageValues);
         Log.i(LOG_TAG, "Inserted " + insert + " new pages on page " + pageIndex);
+    }
+
+    private void downloadBook(String mURL){
+        Log.i(LOG_TAG, "Start download book " + mURL);
+        Cursor bookQuery = getContentResolver().query(BookProvider.BOOKS_CONTENT_URI,
+                BookConstants.PROJECTION, BookConstants.URL.concat("=?"), new String[]{mURL}, null);
+        bookQuery.moveToFirst();
+        String title = bookQuery.getString(BookConstants.TITLE_INDEX);
+        int totalFiles = bookQuery.getInt(BookConstants.FILE_COUNT_INDEX);
+        Cursor pageQuery = getContentResolver().query(BookProvider.PAGES_CONTENT_URI, PageConstants.PROJECTION,
+                PageConstants.BOOK_URL.concat("=?"), new String[]{mURL}, null);
+        int pageCount = pageQuery.getCount();
+        if(pageCount == 0){
+
+        }
+        pageQuery.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                Log.i(LOG_TAG, "new page cursor is load ");
+            }
+        });
+
+        /* Download pages*/
+        while (pageQuery.moveToNext()){
+            String id = pageQuery.getString(0);
+            String src = pageQuery.getString(PageConstants.SRC_INDEX);
+            String nl = pageQuery.getString(PageConstants.NEWLINK_INDEX);
+            if (TextUtils.isEmpty(src)) {
+                getPageData(id, src, nl);
+            }
+
+            DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            DownloadManager.Query query = new DownloadManager.Query();
+            query.setFilterByStatus(DownloadManager.STATUS_PENDING);
+            int pendingCount = downloadManager.query(query).getCount();
+            if (pendingCount <= 1) {
+                Log.i(LOG_TAG, "Start download page " + src);
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(src));
+                String fileName = src.substring(src.lastIndexOf("/"));
+                request.setDestinationInExternalFilesDir(this, null, title + File.pathSeparator + fileName);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                downloadManager.enqueue(request);
+            }else{
+                try {
+                    wait(1000);
+                } catch (InterruptedException e) {
+                    Log.d(LOG_TAG, "error while downloading files" +e.getMessage());
+                }
+            }
+        }
     }
 
     private void getBooks(String pageIndex) {

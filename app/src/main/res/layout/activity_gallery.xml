@@ -20,7 +20,7 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|enterAlways">
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -74,6 +74,17 @@
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@drawable/ic_favorite"
+        android:visibility="gone"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
+        app:rippleColor="@color/colorPrimary"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="bottom|center"
+        app:srcCompat="@drawable/ic_file_download"
         android:visibility="gone"/>
 
 </android.support.design.widget.CoordinatorLayout>

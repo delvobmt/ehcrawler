@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "924727947305",
+    "firebase_url": "https://ehcrawler.firebaseio.com",
+    "project_id": "ehcrawler",
+    "storage_bucket": "ehcrawler.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:924727947305:android:f0cc6214c22660e0",
+        "android_client_info": {
+          "package_name": "com.ntk.ehcrawler"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "924727947305-62nucjjjqpslg3tp78pnsfnuh4c9b927.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ntk.ehcrawler",
+            "certificate_hash": "a730615c56cb8e883cc62b82a3de2c12aace0f91"
+          }
+        },
+        {
+          "client_id": "924727947305-8mq6hqvaigotj7c20h704li5m1e28rm3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClLuy1TcnTKd2GheVxTlMcRFCZxzqY0eI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "924727947305-8mq6hqvaigotj7c20h704li5m1e28rm3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

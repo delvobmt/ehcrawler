@@ -32,7 +32,7 @@ public class SwipePageAdapter extends CursorPagerViewAdapter {
         int count = cursor.getCount();
         final String bookUrl = cursor.getString(PageConstants.BOOK_URL_INDEX);
         if (position == count && count < mSize) {
-            int pageIndex = (position / EHConstants.PAGES_PER_PAGE) + 1;
+            int pageIndex = (position / EHConstants.PAGES_PER_PAGE);
             DatabaseService.startGetBookDetail(mContext, id, bookUrl, String.valueOf(pageIndex));
         }
         fragment.getArguments().putString(PageConstants._ID, id);

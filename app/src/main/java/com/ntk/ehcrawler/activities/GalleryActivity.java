@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -139,19 +140,27 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
             final ImageView mCover = (ImageView) findViewById(R.id.cover_iv);
             final TextView mDetail = (TextView) findViewById(R.id.details_tv);
             final TextView mTags = (TextView) findViewById(R.id.tags_tv);
-            final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_favorite);
-            fab.setOnClickListener( new View.OnClickListener(){
+            final FloatingActionButton fabFavorite = (FloatingActionButton) findViewById(R.id.fab_favorite);
+            final FloatingActionButton fabDownload = (FloatingActionButton) findViewById(R.id.fab_download);
+            fabFavorite.setOnClickListener( new View.OnClickListener(){
 
                 @Override
                 public void onClick(View view) {
                     DatabaseService.startFavoriteBook(GalleryActivity.this, mId, !isFavorite);
-                    fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(
-                            !isFavorite ? R.color.colorAccent : R.color.colorPrimaryDark)));
+                    fabFavorite.setImageResource(!isFavorite ? R.drawable.ic_favorite : R.drawable.ic_not_favorite);
                 }
             });
-            fab.setVisibility(View.VISIBLE);
-            fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(
-                    isFavorite ? R.color.colorAccent : R.color.colorPrimaryDark)));
+            fabFavorite.setVisibility(View.VISIBLE);
+            fabFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite : R.drawable.ic_not_favorite);
+
+            fabDownload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatabaseService.startDownloadBook(GalleryActivity.this, mURL);
+                    fabDownload.setVisibility(View.GONE);
+                }
+            });
+            fabDownload.setVisibility(View.VISIBLE);
 
             final String imageSrc = data.getString(BookConstants.IMAGE_SRC_INDEX);
             mCover.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
