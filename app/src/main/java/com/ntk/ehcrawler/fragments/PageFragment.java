@@ -65,11 +65,11 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
         final int targetHeight = ContextHolder.getScreenHeight();
         //landscape force screen
         if(targetWidth>targetHeight) {
-            imageWidth = targetWidth;
+            imageWidth = (int)(targetWidth * 1.5);
             mImage.setMinimumWidth(targetWidth);
             mImage.setMinimumHeight(targetHeight);
         }else{
-            imageWidth = targetHeight;
+            imageWidth = (int) (targetHeight * 1.5);
             mImage.setMinimumWidth(targetHeight);
             mImage.setMinimumHeight(targetWidth);
         }
