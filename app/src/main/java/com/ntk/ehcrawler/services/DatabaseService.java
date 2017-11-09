@@ -58,7 +58,7 @@ public class DatabaseService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startGetBook(Context context, String pageIndex) {
+    public static void startGetBook(Context context, int pageIndex) {
         int index = Integer.valueOf(pageIndex);
         if(DatabaseService.pageIndex == index){
             /* don't no reload this page */
@@ -72,7 +72,7 @@ public class DatabaseService extends IntentService {
         context.startService(intent);
     }
 
-    public static void startGetBookDetail(Context context, String id, String url, String pageIndex) {
+    public static void startGetBookDetail(Context context, String id, String url, int pageIndex) {
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_GET_BOOK_DETAILS);
         intent.putExtra(BookConstants._ID, id);
@@ -130,10 +130,10 @@ public class DatabaseService extends IntentService {
                 String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
                 getBooks(pageIndex);
             } else if (ACTION_GET_BOOK_DETAILS.equals(action)) {
-                String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
+                int pageIndex = intent.getIntExtra(EHConstants.PAGE_INDEX, 0);
                 String id = intent.getStringExtra(BookConstants._ID);
                 String url = intent.getStringExtra(BookConstants.URL);
-                getBookDetail(id, url, pageIndex);
+                DatabaseUtils.getBookDetail(this, id, url, pageIndex);
             } else if (ACTION_GET_PAGE_IMAGE.equals(action)) {
                 String id = intent.getStringExtra(PageConstants._ID);
                 String url = intent.getStringExtra(PageConstants.URL);
@@ -191,61 +191,6 @@ public class DatabaseService extends IntentService {
         String[] selectionArgs = {url};
         int update = getContentResolver().update(uri, contentValues, selection, selectionArgs);
         Log.i(LOG_TAG, "get " + update + " url=" + url + " nl=" + nl);
-    }
-
-    private void getBookDetail(String id, String url, String pageIndex) {
-        Book book = null;
-        try {
-            book = EHUtils.getBookInfo(url, pageIndex);
-        } catch (IOException e) {
-            //TODO: REPORT UI
-            return;
-        }
-        if("0".equals(pageIndex)) {
-            Map<String, String> infoMap = book.getInfoMap();
-            StringBuilder infoBuilder = new StringBuilder();
-            for (String key : infoMap.keySet()) {
-                infoBuilder.append(key).append(":").append(infoMap.get(key));
-                infoBuilder.append(System.getProperty("line.separator"));
-            }
-            Map<String, Set<String>> tagMap = book.getTagMap();
-            StringBuilder tagsBuilder = new StringBuilder();
-            for (String key : tagMap.keySet()) {
-                tagsBuilder.append(key);
-                tagsBuilder.append(":");
-                Set<String> tags = tagMap.get(key);
-                Iterator<String> iterator = tags.iterator();
-                while (iterator.hasNext()) {
-                    tagsBuilder.append(iterator.next());
-                    if (iterator.hasNext()) {
-                        tagsBuilder.append(",");
-                    }
-                }
-                tagsBuilder.append(System.getProperty("line.separator"));
-            }
-            Uri uri = Uri.withAppendedPath(BookProvider.BOOKS_CONTENT_URI, id);
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(BookConstants.DETAIL, infoBuilder.toString());
-            contentValues.put(BookConstants.TAGS, tagsBuilder.toString());
-            String selection = BookConstants.URL + "=?";
-            String[] selectionArgs = {url};
-            getContentResolver().update(uri, contentValues, selection, selectionArgs);
-            Log.i(LOG_TAG, "update book details url = " + url);
-        }
-        //insert page info
-        Map<String, String> pageMap = book.getPageMap();
-        ContentValues[] pageValues = new ContentValues[pageMap.size()];
-        int i = 0;
-        for (String pageUrl : pageMap.keySet()) {
-            String thumbSrc = pageMap.get(pageUrl);
-            pageValues[i] = new ContentValues();
-            pageValues[i].put(PageConstants.BOOK_URL, url);
-            pageValues[i].put(PageConstants.URL, pageUrl);
-            pageValues[i].put(PageConstants.THUMB_SRC, thumbSrc);
-            i++;
-        }
-        int insert = getContentResolver().bulkInsert(BookProvider.PAGES_CONTENT_URI, pageValues);
-        Log.i(LOG_TAG, "Inserted " + insert + " new pages on page " + pageIndex);
     }
 
     private void downloadBook(String mURL){
