@@ -45,6 +45,9 @@
             android:name=".activities.SearchActivity"
             android:label="@string/title_activity_search" />
 
+        <service
+            android:name=".services.DownloadService"
+            android:exported="false"></service>
     </application>
 
 </manifest>

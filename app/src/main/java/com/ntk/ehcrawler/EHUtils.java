@@ -47,17 +47,17 @@ public class EHUtils {
 		}
 	}
 
-	public static Book getBookInfo(String url, String pageIndex) throws IOException {
+	public static Book getBookInfo(String url, int pageIndex) throws IOException {
 		Book book = new Book();
 		book.setUrl(url);
 		getBookInfo(book, pageIndex);
 		return book;
 	}
 
-	public static void getBookInfo(Book book, String pageIndex) throws IOException {
+	public static void getBookInfo(Book book, int pageIndex) throws IOException {
 		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
 		String url = book.getUrl();
-		Document doc = Jsoup.connect(url).data(EHConstants.PAGE_PAGE_PARAM, pageIndex).cookies(cookies).get();
+		Document doc = Jsoup.connect(url).data(EHConstants.PAGE_PAGE_PARAM, String.valueOf(pageIndex)).cookies(cookies).get();
 		//get detail info
 		Map<String, String> detailMap = new HashMap<>();
 		for (Element e : doc.select(EHConstants.DETAIL_CSS_SELECTOR)) {
