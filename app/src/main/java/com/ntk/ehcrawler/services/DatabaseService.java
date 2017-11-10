@@ -34,7 +34,6 @@ public class DatabaseService extends IntentService {
     private static final String ACTION_UPDATE_BOOK_POSITION = "UPDATE_BOOK_POSITION";
     private static final String ACTION_FAVORITE_BOOK = "FAVORITE_BOOK";
     private static final String ACTION_CLEAR_PAGE_SRC = "CLEAR_PAGE_SRC";
-    private static final String ACTION_DOWNLOAD_BOOK = "DOWNLOAD_BOOK";
 
     private static final String LOG_TAG = "LOG_"+DatabaseService.class.getSimpleName();
 
@@ -48,13 +47,6 @@ public class DatabaseService extends IntentService {
     public static void startClearPageSrc(Context context){
         Intent intent = new Intent(context, DatabaseService.class);
         intent.setAction(ACTION_CLEAR_PAGE_SRC);
-        context.startService(intent);
-    }
-
-    public static void startDownloadBook(Context context, String mURL) {
-        Intent intent = new Intent(context, DatabaseService.class);
-        intent.setAction(ACTION_DOWNLOAD_BOOK);
-        intent.putExtra(BookConstants.URL, mURL);
         context.startService(intent);
     }
 
@@ -123,11 +115,8 @@ public class DatabaseService extends IntentService {
             final String action = intent.getAction();
             if(ACTION_CLEAR_PAGE_SRC.equals(action)) {
                 clearPageSrc();
-            } else if (ACTION_DOWNLOAD_BOOK.equals(action)){
-                String bookURL = intent.getStringExtra(BookConstants.URL);
-                downloadBook(bookURL);
             } else if (ACTION_GET_BOOKS.equals(action)) {
-                String pageIndex = intent.getStringExtra(EHConstants.PAGE_INDEX);
+                int pageIndex = intent.getIntExtra(EHConstants.PAGE_INDEX,0);
                 getBooks(pageIndex);
             } else if (ACTION_GET_BOOK_DETAILS.equals(action)) {
                 int pageIndex = intent.getIntExtra(EHConstants.PAGE_INDEX, 0);
@@ -138,7 +127,7 @@ public class DatabaseService extends IntentService {
                 String id = intent.getStringExtra(PageConstants._ID);
                 String url = intent.getStringExtra(PageConstants.URL);
                 String nl = intent.getStringExtra(PageConstants.NEWLINK);
-                getPageData(id, url, nl);
+                DatabaseUtils.getPageData(this, id, url, nl);
             }else if(ACTION_UPDATE_BOOK_POSITION.equals(action)){
                 String url = intent.getStringExtra(BookConstants.URL);
                 int position = intent.getIntExtra(BookConstants.CURRENT_POSITION, 0);
@@ -184,67 +173,7 @@ public class DatabaseService extends IntentService {
         Log.i(LOG_TAG, "Update book " + contentValues.valueSet() + " url=" + url);
     }
 
-    private void getPageData(String id, String url, String nl) {
-        ContentValues contentValues = EHUtils.getPageData(url, nl);
-        Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, id);
-        String selection = PageConstants.URL + "=?";
-        String[] selectionArgs = {url};
-        int update = getContentResolver().update(uri, contentValues, selection, selectionArgs);
-        Log.i(LOG_TAG, "get " + update + " url=" + url + " nl=" + nl);
-    }
-
-    private void downloadBook(String mURL){
-        Log.i(LOG_TAG, "Start download book " + mURL);
-        Cursor bookQuery = getContentResolver().query(BookProvider.BOOKS_CONTENT_URI,
-                BookConstants.PROJECTION, BookConstants.URL.concat("=?"), new String[]{mURL}, null);
-        bookQuery.moveToFirst();
-        String title = bookQuery.getString(BookConstants.TITLE_INDEX);
-        int totalFiles = bookQuery.getInt(BookConstants.FILE_COUNT_INDEX);
-        Cursor pageQuery = getContentResolver().query(BookProvider.PAGES_CONTENT_URI, PageConstants.PROJECTION,
-                PageConstants.BOOK_URL.concat("=?"), new String[]{mURL}, null);
-        int pageCount = pageQuery.getCount();
-        if(pageCount == 0){
-
-        }
-        pageQuery.registerDataSetObserver(new DataSetObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                Log.i(LOG_TAG, "new page cursor is load ");
-            }
-        });
-
-        /* Download pages*/
-        while (pageQuery.moveToNext()){
-            String id = pageQuery.getString(0);
-            String src = pageQuery.getString(PageConstants.SRC_INDEX);
-            String nl = pageQuery.getString(PageConstants.NEWLINK_INDEX);
-            if (TextUtils.isEmpty(src)) {
-                getPageData(id, src, nl);
-            }
-
-            DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            DownloadManager.Query query = new DownloadManager.Query();
-            query.setFilterByStatus(DownloadManager.STATUS_PENDING);
-            int pendingCount = downloadManager.query(query).getCount();
-            if (pendingCount <= 1) {
-                Log.i(LOG_TAG, "Start download page " + src);
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(src));
-                String fileName = src.substring(src.lastIndexOf("/"));
-                request.setDestinationInExternalFilesDir(this, null, title + File.pathSeparator + fileName);
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                downloadManager.enqueue(request);
-            }else{
-                try {
-                    wait(1000);
-                } catch (InterruptedException e) {
-                    Log.d(LOG_TAG, "error while downloading files" +e.getMessage());
-                }
-            }
-        }
-    }
-
-    private void getBooks(String pageIndex) {
+    private void getBooks(int pageIndex) {
         List<Book> books = EHUtils.getBooks(pageIndex, filterMap);
         ContentValues[] valuesArray = new ContentValues[books.size()];
         for (int i = 0; i < books.size(); i++) {
@@ -257,7 +186,7 @@ public class DatabaseService extends IntentService {
             valuesArray[i].put(BookConstants.RATE, book.getRate());
             valuesArray[i].put(BookConstants.TYPE, book.getType());
         }
-        if("0".equals(pageIndex.trim())) {
+        if (0 == pageIndex) {
             /* clear data , keep favorite books */
             String where = BookConstants.IS_FAVORITE + "!=?";
             String[] whereArgs = {"1"};

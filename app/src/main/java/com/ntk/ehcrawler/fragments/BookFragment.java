@@ -140,7 +140,7 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private void getNewData(){
         synchronized (mRefreshLayout) {
-            DatabaseService.startGetBook(getContext(), "0");
+            DatabaseService.startGetBook(getContext(), 0);
             mRefreshLayout.setRefreshing(true);
         }
     }

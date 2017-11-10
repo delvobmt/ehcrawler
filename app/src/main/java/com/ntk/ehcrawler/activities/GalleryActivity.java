@@ -27,6 +27,7 @@ import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
+import com.ntk.ehcrawler.services.DownloadService;
 import com.squareup.picasso.Picasso;
 
 public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
@@ -156,7 +157,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
             fabDownload.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    DatabaseService.startDownloadBook(GalleryActivity.this, mURL);
+                    DownloadService.startDownloadBook(GalleryActivity.this, mURL);
                     fabDownload.setVisibility(View.GONE);
                 }
             });
@@ -182,7 +183,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
 
     private void getBookDetail() {
         mLoading.setVisibility(View.VISIBLE);
-        DatabaseService.startGetBookDetail(this, mId, mURL, "0");
+        DatabaseService.startGetBookDetail(this, mId, mURL, 0);
     }
 
     @Override

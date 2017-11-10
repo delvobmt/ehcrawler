@@ -90,12 +90,12 @@ public class EHUtils {
 		book.setPageMap(pageMap);
 	}
 
-	public static List<Book> getBooks(String pageIndex, Map<String, String> filters) {
+	public static List<Book> getBooks(int pageIndex, Map<String, String> filters) {
 		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
 		try {
 			Connection connection = Jsoup.connect(EHConstants.HOST);
-			if (!"0".equals(pageIndex)) {
-				connection.data(EHConstants.BOOK_PAGE_PARAM, pageIndex);
+			if (pageIndex > 0) {
+				connection.data(EHConstants.BOOK_PAGE_PARAM, String.valueOf(pageIndex));
 			}
 			if(filters != null && !filters.equals(Collections.<String, String>emptyMap())){
 				filters.put(EHConstants.SEARCH_APPLY_KEY, EHConstants.SEARCH_APPLY_VALUE);

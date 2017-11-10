@@ -40,7 +40,7 @@ public class ThumbAdapter extends CursorRecyclerViewAdapter{
         final String thumbSrc = cursor.getString(PageConstants.THUMB_SRC_INDEX);
         if (position + 1 == count && count < mSize) {
             int pageIndex = (position / EHConstants.PAGES_PER_PAGE) + 1;
-            DatabaseService.startGetBookDetail(mContext, id, url, String.valueOf(pageIndex));
+            DatabaseService.startGetBookDetail(mContext, id, url, pageIndex);
         }
 
         final View view = viewHolder.itemView;

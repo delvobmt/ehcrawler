@@ -19,15 +19,25 @@ import java.util.Set;
 public class DatabaseUtils {
     private static final String LOG_TAG = "LOG_" + DatabaseUtils.class.getSimpleName();
 
-    public static int getBookDetail(Context context, String id, String url, int pageIndex) {
+    public static String getPageData(Context context,String id, String url, String nl) {
+        ContentValues contentValues = EHUtils.getPageData(url, nl);
+        Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, id);
+        String selection = PageConstants.URL + "=?";
+        String[] selectionArgs = {url};
+        int update = context.getContentResolver().update(uri, contentValues, selection, selectionArgs);
+        Log.i(LOG_TAG, "get " + update + " url=" + url + " nl=" + nl);
+        return contentValues.getAsString(PageConstants.SRC);
+    }
+
+    public static void getBookDetail(Context context, String id, String url, int pageIndex) {
         Book book = null;
         try {
             book = EHUtils.getBookInfo(url, pageIndex);
         } catch (IOException e) {
             Log.e(LOG_TAG, "error while get book Info " + url + " - page " + pageIndex, e);
-            return 0;
+            return;
         }
-        if("0".equals(pageIndex)) {
+        if(pageIndex == 0) {
             Map<String, String> infoMap = book.getInfoMap();
             StringBuilder infoBuilder = new StringBuilder();
             for (String key : infoMap.keySet()) {
@@ -72,6 +82,5 @@ public class DatabaseUtils {
         }
         int insert = context.getContentResolver().bulkInsert(BookProvider.PAGES_CONTENT_URI, pageValues);
         Log.i(LOG_TAG, "Inserted " + insert + " new pages on page " + pageIndex);
-        return insert;
     }
 }
