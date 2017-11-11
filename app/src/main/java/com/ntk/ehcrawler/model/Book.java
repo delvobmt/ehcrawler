@@ -12,6 +12,7 @@ public class Book implements Serializable {
      *
      */
     private static final long serialVersionUID = 2065000192736021013L;
+    private String _id;
     private String title;
     private String url;
     private String imageSrc;
@@ -33,6 +34,14 @@ public class Book implements Serializable {
         this.fileCount = fileCount;
         this.rate = rate;
         this.type = type;
+    }
+
+    public String getId() {
+        return _id;
+    }
+
+    public void setId(String id) {
+        this._id = _id;
     }
 
     public String getTitle() {
