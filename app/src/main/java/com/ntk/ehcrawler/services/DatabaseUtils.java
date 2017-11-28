@@ -19,14 +19,14 @@ import java.util.Set;
 public class DatabaseUtils {
     private static final String LOG_TAG = "LOG_" + DatabaseUtils.class.getSimpleName();
 
-    public static String getPageData(Context context,String id, String url, String nl) {
+    public static ContentValues getPageData(Context context,String id, String url, String nl) {
         ContentValues contentValues = EHUtils.getPageData(url, nl);
         Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, id);
         String selection = PageConstants.URL + "=?";
         String[] selectionArgs = {url};
         int update = context.getContentResolver().update(uri, contentValues, selection, selectionArgs);
         Log.i(LOG_TAG, "get " + update + " url=" + url + " nl=" + nl);
-        return contentValues.getAsString(PageConstants.SRC);
+        return contentValues;
     }
 
     public static void getBookDetail(Context context, String id, String url, int pageIndex) {

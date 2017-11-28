@@ -90,6 +90,7 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
                 return imageSrc;
             }
         };
+        Log.d(LOG_TAG, "load img " + imageSrc);
         Picasso.with(getContext()).load(imageSrc)
                 .transform(transformation)
                 .into(mImage, new Callback() {

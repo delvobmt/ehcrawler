@@ -143,7 +143,7 @@ public class DatabaseService extends IntentService {
     private void clearPageSrc(){
         ContentValues contentValues = new ContentValues();
         contentValues.put(PageConstants.SRC, "");
-        String selection = null;
+        String selection = PageConstants.SRC+" not like 'file:%'";
         String[] selectionArgs = null;
         Uri uri = BookProvider.PAGES_CONTENT_URI;
         getContentResolver().update(uri, contentValues, selection, selectionArgs);

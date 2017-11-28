@@ -3,12 +3,12 @@ package com.ntk.ehcrawler.services;
 import android.app.DownloadManager;
 import android.app.IntentService;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -27,40 +27,21 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class DownloadService extends IntentService {
     private static final String LOG_TAG = "LOG_" + DownloadManager.class.getSimpleName();
 
-    public static final String ACTION_START = "START_DOWNLOAD";
-    public static final String ACTION_STOP = "STOP_DOWNLOAD";
+    public static final String ACTION_START = "ACTION_START_DOWNLOAD";
+    public static final String ACTION_STOP = "ACTION_STOP_DOWNLOAD";
+    public static final String ACTION_DOWNLOAD_NEXT = "ACTION_DOWNLOAD_NEXT";
 
-    private Queue<String> waitingBooksQueue = new LinkedBlockingDeque<>();
-    private Queue<Page> waitingPagesQueue = new LinkedBlockingDeque<>();
-    private Book pendingBook = null;
+    private static Queue<String> waitingBooksQueue = new LinkedBlockingDeque<>();
+    private static Queue<Page> waitingPagesQueue = new LinkedBlockingDeque<>();
+    private static Book pendingBook = null;
 
-    private Map<Long, String> downloadingMap = new HashMap<>();
-    private DownloadManager downloadManager = null;
-    private BroadcastReceiver broadcastReceiver;
+    private static Map<Long, Page> downloadingMap = new HashMap<>();
+    private static DownloadManager downloadManager = null;
+    private static BroadcastReceiver.PendingResult pendingResult;
+    private static BroadcastReceiver broadcastReceiver;
 
     public DownloadService() {
         super("DownloadService");
-    }
-
-    @Override
-    public void onStart(@Nullable Intent intent, int startId) {
-        super.onStart(intent, startId);
-        downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-                downloadComplete(downloadId);
-            }
-        };
-        registerReceiver(broadcastReceiver, filter);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(broadcastReceiver);
     }
 
     public static void startDownloadBook(Context context, String bookUrl) {
@@ -77,13 +58,45 @@ public class DownloadService extends IntentService {
             String bookUrl = intent.getStringExtra(BookConstants.URL);
             if (ACTION_START.equals(action)) {
                 doStartDownloadBook(bookUrl);
-            } else if (ACTION_STOP.equals(action)) {
-                doStopDownloadBook(bookUrl);
+            } else if (ACTION_DOWNLOAD_NEXT.equals(action)) {
+                String pageId = intent.getStringExtra(PageConstants._ID);
+                if (TextUtils.isEmpty(pageId)) {
+                    downloadNext();
+                } else {
+                    reDownload(pageId);
+                }
+
             }
         }
     }
 
+    private void prepare() {
+        if (downloadManager == null)
+            downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        if (broadcastReceiver == null) {
+            IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                    downloadComplete(downloadId);
+                    pendingResult = broadcastReceiver.goAsync();
+                }
+            };
+            getApplicationContext().registerReceiver(broadcastReceiver, filter);
+        }
+    }
+
+    private void clear() {
+        pendingBook = null;
+        pendingResult.finish();
+        downloadManager = null;
+        getApplicationContext().unregisterReceiver(broadcastReceiver);
+        broadcastReceiver = null;
+    }
+
     private void doStartDownloadBook(String bookUrl) {
+        prepare();
         if (pendingBook == null) {
             updatePendingBook(bookUrl);
             int totalPages = pendingBook.getFileCount();
@@ -93,24 +106,24 @@ public class DownloadService extends IntentService {
             int count = pageQuery.getCount();
             while (count < totalPages) {
                 /* get page info */
-                int pageIndex = count/ EHConstants.PAGES_PER_PAGE;
+                int pageIndex = count / EHConstants.PAGES_PER_PAGE;
                 DatabaseUtils.getBookDetail(this, bookId, bookUrl, pageIndex);
                 pageQuery.close();
                 pageQuery = pageQuery(bookUrl);
                 count = pageQuery.getCount();
             }
             /* get page src */
-            while (pageQuery.moveToNext()){
+            while (pageQuery.moveToNext()) {
                 String pageId = pageQuery.getString(0);
                 String imgSrc = pageQuery.getString(PageConstants.SRC_INDEX);
                 String pageUrl = pageQuery.getString(PageConstants.URL_INDEX);
                 String nl = pageQuery.getString(PageConstants.NEWLINK_INDEX);
                 waitingPagesQueue.add(new Page(pageId, pageUrl, imgSrc, nl));
             }
-            while (downloadingMap.size() < 4){
+            while (downloadingMap.size() < 4) {
                 downloadNext();
             }
-        }else{
+        } else {
             waitingBooksQueue.add(bookUrl);
         }
     }
@@ -131,29 +144,61 @@ public class DownloadService extends IntentService {
     }
 
     private void downloadNext() {
-        if(!waitingPagesQueue.isEmpty()) {
+        if (!waitingPagesQueue.isEmpty()) {
             String title = pendingBook.getTitle();
             Page page = waitingPagesQueue.poll();
             String imgSrc = page.getSrc();
-            if(TextUtils.isEmpty(imgSrc)){
-                imgSrc = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+            if (TextUtils.isEmpty(imgSrc)) {
+                ContentValues cv = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+                imgSrc = cv.getAsString(PageConstants.SRC);
+                page.setSrc(imgSrc);
+                page.setNewLink(cv.getAsString(PageConstants.NEWLINK));
             }
-            String fileName = imgSrc.substring(imgSrc.lastIndexOf("/")+1);
-            Log.i(LOG_TAG, "Start downloadingMap page " + imgSrc);
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(imgSrc));
-            request.setDestinationInExternalFilesDir(this, null , title + File.pathSeparator + fileName);
-            request.setVisibleInDownloadsUi(true);
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            long downloadId = downloadManager.enqueue(request);
-            downloadingMap.put(downloadId, imgSrc);
-        }else{
-            if(pendingBook != null){
-                Log.d(LOG_TAG, "download finish book " + pendingBook);
+            String fileName = imgSrc.substring(imgSrc.lastIndexOf("/") + 1);
+            Uri uri = Uri.parse(imgSrc);
+            if(!uri.getScheme().equals("file")) {
+                Log.i(LOG_TAG, "Start download page " + imgSrc);
+                DownloadManager.Request request = new DownloadManager.Request(uri);
+                request.setDestinationInExternalFilesDir(this, null, File.separator + title + File.separator + fileName);
+                request.setVisibleInDownloadsUi(true);
+                long downloadId = downloadManager.enqueue(request);
+                downloadingMap.put(downloadId, page);
+            }
+        } else {
+            if (pendingBook != null && downloadingMap.isEmpty()) {
+                Log.d(LOG_TAG, "download finish " + pendingBook);
                 String nextBookUrl = waitingBooksQueue.poll();
                 if (nextBookUrl != null) {
-                    updatePendingBook(nextBookUrl);
+                    doStartDownloadBook(nextBookUrl);
+                } else {
+                    clear();
                 }
+            }
+        }
+    }
 
+    private void reDownload(String pageId) {
+        String title = pendingBook.getTitle();
+        /* get new image source */
+        Cursor cursor = getContentResolver().query(Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, pageId),
+                new String[]{PageConstants.NEWLINK, PageConstants.URL}, null, null, null);
+        if (cursor.moveToFirst()) {
+            Page page = new Page(pageId, null, null, null);
+            page.setNewLink(cursor.getString(0));
+            page.setUrl(cursor.getString(1));
+            /* check in downloading map */
+            if(!downloadingMap.containsValue(page)) {
+                ContentValues values = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+                String imgSrc = values.getAsString(PageConstants.SRC);
+                page.setSrc(imgSrc);
+                String fileName = imgSrc.substring(imgSrc.lastIndexOf("/") + 1);
+                Log.i(LOG_TAG, "re-download page " + fileName);
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(imgSrc));
+                request.setDestinationInExternalFilesDir(this, null, File.separator + title + File.separator + fileName);
+                request.setVisibleInDownloadsUi(true);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                long downloadId = downloadManager.enqueue(request);
+                downloadingMap.put(downloadId, page);
             }
         }
     }
@@ -173,13 +218,42 @@ public class DownloadService extends IntentService {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private void downloadComplete(long downloadId) {
-        String imgSrc = downloadingMap.remove(downloadId);
-        Log.d(LOG_TAG, "Download complete " + imgSrc);
-        downloadNext();
+    private void downloadComplete(final long downloadId) {
+        Page page = downloadingMap.remove(downloadId);
+        DownloadManager.Query query = new DownloadManager.Query();
+        query.setFilterById(downloadId);
+        Cursor cursor = downloadManager.query(query);
+        if (cursor.moveToFirst()) {
+            int status_index = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+            int status = cursor.getInt(status_index);
+            switch (status) {
+                case DownloadManager.STATUS_SUCCESSFUL: {
+                    Log.d(LOG_TAG, "Download successfully " + page.getSrc());
+                    int localUri_index = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                    String localUrl = cursor.getString(localUri_index);
+                    ContentValues values = new ContentValues();
+                    values.put(PageConstants.SRC, localUrl);
+                    getContentResolver().update(BookProvider.PAGES_CONTENT_URI, values, PageConstants._ID+"=?", new String[]{page.getId()});
+                    if (pendingBook != null) {
+                        Intent intent = new Intent(DownloadService.this, DownloadService.class);
+                        intent.setAction(ACTION_DOWNLOAD_NEXT);
+                        startService(intent);
+                    }
+                    break;
+                }
+                case DownloadManager.STATUS_FAILED: {
+                    Log.d(LOG_TAG, "Download failed " + page.getId() + " - " + page.getSrc());
+                    Intent intent = new Intent(DownloadService.this, DownloadService.class);
+                    intent.setAction(ACTION_DOWNLOAD_NEXT);
+                    intent.putExtra(PageConstants._ID, page.getId());
+                    startService(intent);
+                    break;
+                }
+            }
+        }
     }
 
-    class Page{
+    class Page {
         String id;
         String url;
         String src;
@@ -222,6 +296,21 @@ public class DownloadService extends IntentService {
 
         public void setNewLink(String nl) {
             this.nl = nl;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Page page = (Page) o;
+
+            return id != null ? id.equals(page.id) : page.id == null;
+        }
+
+        @Override
+        public int hashCode() {
+            return id != null ? id.hashCode() : 0;
         }
     }
 }
