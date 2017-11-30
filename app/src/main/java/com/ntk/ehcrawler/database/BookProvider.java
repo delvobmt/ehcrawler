@@ -167,6 +167,9 @@ public class BookProvider extends ContentProvider {
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
                 return cursor;
             case ONE_PAGE_QUERY:
+                selection = "_id=?";
+                String id = uri.getLastPathSegment();
+                selectionArgs = new String[]{id};
                 cursor = readableDB.query(PageConstants.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder,"1");
                 cursor.setNotificationUri(getContext().getContentResolver(), uri);
