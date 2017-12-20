@@ -22,6 +22,7 @@ import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -180,7 +181,13 @@ public class DownloadService extends IntentService {
             Page page = waitingPagesQueue.poll();
             String imgSrc = page.getSrc();
             if (TextUtils.isEmpty(imgSrc)) {
-                ContentValues cv = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+                ContentValues cv = null;
+                try {
+                    cv = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage() );
+                    return;
+                }
                 imgSrc = cv.getAsString(PageConstants.SRC);
                 page.setSrc(imgSrc);
                 page.setNewLink(cv.getAsString(PageConstants.NEWLINK));
@@ -220,7 +227,13 @@ public class DownloadService extends IntentService {
             page.setUrl(cursor.getString(1));
             /* check in downloading map */
             if(!downloadingMap.containsValue(page)) {
-                ContentValues values = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+                ContentValues values = null;
+                try {
+                    values = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage());
+                    return;
+                }
                 String imgSrc = values.getAsString(PageConstants.SRC);
                 page.setSrc(imgSrc);
                 String fileName = imgSrc.substring(imgSrc.lastIndexOf("/") + 1);
@@ -246,12 +259,14 @@ public class DownloadService extends IntentService {
     }
 
     private void doStopDownloadBook(String bookUrl) {
-        // TODO: Handle action Baz
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     private void downloadComplete(final long downloadId) {
         Page page = downloadingMap.remove(downloadId);
+        if(page == null){
+            Log.d(LOG_TAG, downloadId + " was processed!");
+        }
         DownloadManager.Query query = new DownloadManager.Query();
         query.setFilterById(downloadId);
         Cursor cursor = downloadManager.query(query);

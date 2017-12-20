@@ -19,7 +19,7 @@ import java.util.Set;
 public class DatabaseUtils {
     private static final String LOG_TAG = "LOG_" + DatabaseUtils.class.getSimpleName();
 
-    public static ContentValues getPageData(Context context,String id, String url, String nl) {
+    public static ContentValues getPageData(Context context,String id, String url, String nl) throws IOException {
         ContentValues contentValues = EHUtils.getPageData(url, nl);
         Uri uri = Uri.withAppendedPath(BookProvider.PAGES_CONTENT_URI, id);
         String selection = PageConstants.URL + "=?";
@@ -34,7 +34,7 @@ public class DatabaseUtils {
         try {
             book = EHUtils.getBookInfo(url, pageIndex);
         } catch (IOException e) {
-            Log.e(LOG_TAG, "error while get book Info " + url + " - page " + pageIndex, e);
+            Log.e(LOG_TAG, e.getLocalizedMessage() + " " + url + " - page " + pageIndex);
             return;
         }
         if(pageIndex == 0) {

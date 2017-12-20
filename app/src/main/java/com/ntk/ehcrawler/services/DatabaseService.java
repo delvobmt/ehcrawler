@@ -127,7 +127,12 @@ public class DatabaseService extends IntentService {
                 String id = intent.getStringExtra(PageConstants._ID);
                 String url = intent.getStringExtra(PageConstants.URL);
                 String nl = intent.getStringExtra(PageConstants.NEWLINK);
-                DatabaseUtils.getPageData(this, id, url, nl);
+                try {
+                    DatabaseUtils.getPageData(this, id, url, nl);
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, e.getLocalizedMessage());
+                    return;
+                }
             }else if(ACTION_UPDATE_BOOK_POSITION.equals(action)){
                 String url = intent.getStringExtra(BookConstants.URL);
                 int position = intent.getIntExtra(BookConstants.CURRENT_POSITION, 0);
@@ -174,7 +179,13 @@ public class DatabaseService extends IntentService {
     }
 
     private void getBooks(int pageIndex) {
-        List<Book> books = EHUtils.getBooks(pageIndex, filterMap);
+        List<Book> books = null;
+        try {
+            books = EHUtils.getBooks(pageIndex, filterMap);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, e.getLocalizedMessage());
+            return;
+        }
         ContentValues[] valuesArray = new ContentValues[books.size()];
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);

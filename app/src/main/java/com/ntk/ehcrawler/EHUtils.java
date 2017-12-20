@@ -26,25 +26,20 @@ public class EHUtils {
 
 	private static final String LOG_TAG = "LOG_" + EHUtils.class.getSimpleName();
 
-	public static ContentValues getPageData(String pageUrl, String newLink) {
+	public static ContentValues getPageData(String pageUrl, String newLink) throws IOException {
 		ContentValues contentValues = new ContentValues();
-		try {
-            Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
-			Connection connection = Jsoup.connect(pageUrl).cookies(cookies);
-			if(!TextUtils.isEmpty(newLink)){
-				connection.data(EHConstants.NEWLINK_PARAM, newLink);
-			}
-			Document doc = connection.get();
-			String src = doc.select(EHConstants.IMAGE_CSS_SELECTOR).attr("src");
-			String nl = doc.select(EHConstants.NEWLINK_CSS_SELECTOR).attr("onClick")
-					.replace("return nl('","").replace("')","");
-			contentValues.put(PageConstants.SRC, src);
-			contentValues.put(PageConstants.NEWLINK, nl);
-			return contentValues;
-		} catch (IOException e) {
-			Log.w(LOG_TAG, "Error while getPageData()", e);
-			return null;
+		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
+		Connection connection = Jsoup.connect(pageUrl).cookies(cookies);
+		if(!TextUtils.isEmpty(newLink)){
+			connection.data(EHConstants.NEWLINK_PARAM, newLink);
 		}
+		Document doc = connection.get();
+		String src = doc.select(EHConstants.IMAGE_CSS_SELECTOR).attr("src");
+		String nl = doc.select(EHConstants.NEWLINK_CSS_SELECTOR).attr("onClick")
+				.replace("return nl('","").replace("')","");
+		contentValues.put(PageConstants.SRC, src);
+		contentValues.put(PageConstants.NEWLINK, nl);
+		return contentValues;
 	}
 
 	public static Book getBookInfo(String url, int pageIndex) throws IOException {
@@ -90,38 +85,33 @@ public class EHUtils {
 		book.setPageMap(pageMap);
 	}
 
-	public static List<Book> getBooks(int pageIndex, Map<String, String> filters) {
+	public static List<Book> getBooks(int pageIndex, Map<String, String> filters) throws IOException {
 		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());
-		try {
-			Connection connection = Jsoup.connect(EHConstants.HOST);
-			if (pageIndex > 0) {
-				connection.data(EHConstants.BOOK_PAGE_PARAM, String.valueOf(pageIndex));
-			}
-			if(filters != null && !filters.equals(Collections.<String, String>emptyMap())){
-				filters.put(EHConstants.SEARCH_APPLY_KEY, EHConstants.SEARCH_APPLY_VALUE);
-				connection.data(filters);
-			}
-			Document doc = connection.cookies(cookies).get();
-			List<Book> books = new ArrayList<>();
-            for(Element e: doc.select(EHConstants.ITEM_CSS_SELECTOR)){
-				String title = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).text();
-				String url = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).attr("href");
-				String imageSrc = e.select(EHConstants.ITEM_IMAGE_CSS_SELECTOR).attr("src").replace("l","250");
-				String fileCount = e.select(EHConstants.ITEM_FILE_COUNT_CSS_SELECTOR).text();
-				String type = e.select(EHConstants.ITEM_TYPE_CSS_SELECTOR).attr("title");
-				String style = e.select(EHConstants.ITEM_STAR_RATE_CSS_SELECTOR).attr("style");
-				Book book = new Book(title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
-				books.add(book);
-			}
-			Log.i(LOG_TAG, "get books success at page " + pageIndex + " with " + books.size() + " items");
-			return books;
-		} catch (IOException e) {
-			Log.e(LOG_TAG, "Error while getting books", e);
-			return Collections.emptyList();
+		Connection connection = Jsoup.connect(EHConstants.HOST);
+		if (pageIndex > 0) {
+			connection.data(EHConstants.BOOK_PAGE_PARAM, String.valueOf(pageIndex));
 		}
+		if(filters != null && !filters.equals(Collections.<String, String>emptyMap())){
+			filters.put(EHConstants.SEARCH_APPLY_KEY, EHConstants.SEARCH_APPLY_VALUE);
+			connection.data(filters);
+		}
+		Document doc = connection.cookies(cookies).get();
+		List<Book> books = new ArrayList<>();
+		for(Element e: doc.select(EHConstants.ITEM_CSS_SELECTOR)){
+			String title = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).text();
+			String url = e.select(EHConstants.ITEM_TITLE_CSS_SELECTOR).attr("href");
+			String imageSrc = e.select(EHConstants.ITEM_IMAGE_CSS_SELECTOR).attr("src").replace("l","250");
+			String fileCount = e.select(EHConstants.ITEM_FILE_COUNT_CSS_SELECTOR).text();
+			String type = e.select(EHConstants.ITEM_TYPE_CSS_SELECTOR).attr("title");
+			String style = e.select(EHConstants.ITEM_STAR_RATE_CSS_SELECTOR).attr("style");
+			Book book = new Book(title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
+			books.add(book);
+		}
+		Log.i(LOG_TAG, "get books success at page " + pageIndex + " with " + books.size() + " items");
+		return books;
 	}
 
-	public static Map<String, String> prepareCookies(Map<String, String> cookies) {
+	public static Map<String, String> prepareCookies(Map<String, String> cookies) throws IOException {
 		if (cookies == null || cookies.isEmpty()) {
 			cookies = getCookies();
 		}
@@ -135,15 +125,11 @@ public class EHUtils {
 		return cookies;
 	}
 
-	public static Map<String, String> getCookies() {
+	public static Map<String, String> getCookies() throws IOException {
 		Connection connection = Jsoup.connect(EHConstants.HOST);
-		try {
-			Map<String, String> cookies = connection.execute().cookies();
-			Log.i(LOG_TAG, String.format("_getCookies_ return %s", cookies));
-			return cookies;
-		} catch (IOException e) {
-			return Collections.emptyMap();
-		}
+		Map<String, String> cookies = connection.execute().cookies();
+		Log.i(LOG_TAG, String.format("_getCookies_ return %s", cookies));
+		return cookies;
 	}
 	
 	public static int calculateRate(String style){
