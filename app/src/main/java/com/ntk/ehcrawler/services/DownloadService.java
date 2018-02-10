@@ -298,6 +298,7 @@ public class DownloadService extends IntentService {
                 }
             }
         }
+        cursor.close();
     }
 
     class Page {
