@@ -4,11 +4,10 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <com.github.chrisbanes.photoview.PhotoView
+    <com.github.chrisbanes.photoview.EHPhotoView
         android:id="@+id/image_iv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:adjustViewBounds="true" />
+        android:layout_height="match_parent" />
 
     <FrameLayout
         android:id="@+id/loading"

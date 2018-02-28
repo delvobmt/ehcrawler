@@ -11,6 +11,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.fragments.BookFragment;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FileDownloader.setup(this);
         setContentView(R.layout.activity_main);
 
         DatabaseService.startClearPageSrc(this);

@@ -2,7 +2,6 @@ package com.ntk.ehcrawler.fragments;
 
 
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,19 +15,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.github.chrisbanes.photoview.EHPhotoView;
 import com.ntk.ehcrawler.R;
-import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
 
 public class PageFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
     private static final String LOG_TAG = "LOG_"+PageFragment.class.getSimpleName();
-    private ImageView mImage;
+    private EHPhotoView mImage;
     private View mLoading;
     private String mUrl;
     private String mSrc;
@@ -43,7 +41,7 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.page_view, null);
-        mImage = (ImageView) view.findViewById(R.id.image_iv);
+        mImage = (EHPhotoView) view.findViewById(R.id.image_iv);
         view.findViewById(R.id.reload).setOnClickListener(this);
         mLoading = view.findViewById(R.id.loading);
         mSrc = getArguments().getString(PageConstants.SRC);
@@ -60,39 +58,8 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     private void bindView(final String imageSrc) {
-        final int imageWidth;
-        final int targetWidth = ContextHolder.getScreenWidth();
-        final int targetHeight = ContextHolder.getScreenHeight();
-        //landscape force screen
-        if(targetWidth>targetHeight) {
-            imageWidth = (int)(targetWidth * 1.5);
-            mImage.setMinimumWidth(targetWidth);
-            mImage.setMinimumHeight(targetHeight);
-        }else{
-            imageWidth = (int) (targetHeight * 1.5);
-            mImage.setMinimumWidth(targetHeight);
-            mImage.setMinimumHeight(targetWidth);
-        }
-        Transformation transformation = new Transformation() {
-            @Override
-            public Bitmap transform(Bitmap source) {
-                double aspectRatio = (double) source.getHeight() / (double) source.getWidth();
-                int imageHeight = (int) (imageWidth * aspectRatio);
-                Bitmap result = Bitmap.createScaledBitmap(source, imageWidth, imageHeight, true);
-                if (result != source) {
-                    source.recycle();
-                }
-                return result;
-            }
-
-            @Override
-            public String key() {
-                return imageSrc;
-            }
-        };
         Log.d(LOG_TAG, "load img " + imageSrc);
         Picasso.with(getContext()).load(imageSrc)
-                .transform(transformation)
                 .into(mImage, new Callback() {
             @Override
             public void onSuccess() {

@@ -116,7 +116,7 @@ public class EHUtils {
 			cookies = getCookies();
 		}
 		if (!cookies.containsKey("uconfig")) {
-			cookies.put("uconfig", "dm_t");
+			cookies.put("sl", "dm_1");
 		}
 		if (!cookies.containsKey("nw")){
 			cookies.put("nw", "1");

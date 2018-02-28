@@ -9,13 +9,10 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
-import com.ntk.ehcrawler.adapters.PageAdapter;
 import com.ntk.ehcrawler.adapters.SwipePageAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
