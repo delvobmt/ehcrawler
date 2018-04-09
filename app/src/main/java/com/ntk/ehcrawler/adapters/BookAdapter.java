@@ -28,7 +28,7 @@ import static com.ntk.ehcrawler.EHConstants.SEARCH_PREFERENCES;
 public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHolder> {
     private final Context mContext;
     private boolean loadNewAtEndPage = false;
-    private static final String LOG_TAG = BookAdapter.class.getSimpleName();
+    private static final String LOG_TAG = "LOG_" + BookAdapter.class.getSimpleName();
 
     public BookAdapter(Context context) {
         super(context, null);
@@ -62,6 +62,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
         final String type = cursor.getString(BookConstants.TYPE_INDEX);
         final int fileCount = cursor.getInt(BookConstants.FILE_COUNT_INDEX);
         final float rate = cursor.getFloat(BookConstants.RATE_INDEX)/2;
+        final int position = cursor.getPosition();
 
         Picasso.with(mContext).load(imageSrc).into(mImage, new Callback() {
             @Override
@@ -89,15 +90,14 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
                 intent.putExtra(BookConstants.URL, url);
                 intent.putExtra(BookConstants.FILE_COUNT, fileCount);
                 mContext.startActivity(intent);
-                saveCurrentPosition(cursor.getPosition());
+                saveCurrentPosition(position);
             }
         });
 
         /* prepare new data for next page*/
-        int position = cursor.getPosition()+1;
         int count = cursor.getCount();
-        if(position == count && loadNewAtEndPage){
-            int pageIndex = (int) Math.ceil(position/ (double) EHConstants.BOOKS_PER_PAGE);
+        if (position + 1 == count && loadNewAtEndPage) {
+            int pageIndex = (int) Math.ceil(position + 1 / (double) EHConstants.BOOKS_PER_PAGE);
             DatabaseService.startGetBook(mContext, pageIndex);
         }
     }

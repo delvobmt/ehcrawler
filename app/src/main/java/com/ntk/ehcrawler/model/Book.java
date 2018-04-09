@@ -27,7 +27,8 @@ public class Book implements Serializable {
 
     }
 
-    public Book(String title, String url, String imageSrc, int fileCount, int rate, String type) {
+    public Book(String id, String title, String url, String imageSrc, int fileCount, int rate, String type) {
+        this._id = id;
         this.title = title;
         this.url = url;
         this.imageSrc = imageSrc;
@@ -41,7 +42,7 @@ public class Book implements Serializable {
     }
 
     public void setId(String id) {
-        this._id = _id;
+        this._id = id;
     }
 
     public String getTitle() {

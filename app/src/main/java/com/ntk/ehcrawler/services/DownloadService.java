@@ -2,7 +2,8 @@ package com.ntk.ehcrawler.services;
 
 import android.app.DownloadManager;
 import android.app.IntentService;
-import android.content.BroadcastReceiver;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.ehcrawler.EHConstants;
+import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
@@ -31,7 +33,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class DownloadService extends IntentService {
-    private static final String LOG_TAG = "LOG_" + DownloadManager.class.getSimpleName();
+    private static final String LOG_TAG = "LOG_" + DownloadService.class.getSimpleName();
 
     public static final String ACTION_START = "ACTION_START_DOWNLOAD";
     public static final String ACTION_STOP = "ACTION_STOP_DOWNLOAD";
@@ -40,6 +42,7 @@ public class DownloadService extends IntentService {
     private static Queue<String> waitingBooksQueue = new LinkedBlockingDeque<>();
     private static Queue<Page> waitingPagesQueue = new LinkedBlockingDeque<>();
     private static Book pendingBook = null;
+    private static int downloadedPage;
 
     private static Map<Integer, Page> downloadingMap = new HashMap<>();
 
@@ -60,7 +63,7 @@ public class DownloadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (!isNetworkAvailable()){
+        if (!isNetworkAvailable()) {
             Log.d(LOG_TAG, "Network is not available");
             Toast.makeText(this, "Network is not available", Toast.LENGTH_SHORT).show();
             clear();
@@ -149,6 +152,19 @@ public class DownloadService extends IntentService {
     }
 
     private void downloadNext() {
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if(pendingBook != null) {
+            Notification notification = new Notification.Builder(DownloadService.this)
+                    .setContentTitle("Downloading Book !")
+                    .setContentText(pendingBook.getTitle())
+                    .setProgress(pendingBook.getFileCount(), downloadedPage, false)
+                    .setSmallIcon(R.drawable.ic_file_download)
+                    .setAutoCancel(true)
+                    .build();
+
+            notificationManager.notify(pendingBook.getId(),Integer.valueOf(pendingBook.getId()), notification);
+        }
         if (!waitingPagesQueue.isEmpty()) {
             String title = pendingBook.getTitle();
             Page page = waitingPagesQueue.poll();
@@ -158,7 +174,7 @@ public class DownloadService extends IntentService {
                 try {
                     cv = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
                 } catch (IOException e) {
-                    Log.e(LOG_TAG, e.getLocalizedMessage() );
+                    Log.e(LOG_TAG, e.getLocalizedMessage());
                     return;
                 }
                 imgSrc = cv.getAsString(PageConstants.SRC);
@@ -167,13 +183,19 @@ public class DownloadService extends IntentService {
             }
             String fileName = imgSrc.substring(imgSrc.lastIndexOf("/") + 1);
             Uri uri = Uri.parse(imgSrc);
-            if(!uri.getScheme().equals("file")) {
+            if (!uri.getScheme().equals("file")) {
                 Log.i(LOG_TAG, "Start download page " + imgSrc);
                 doDownload(page, imgSrc, title, fileName);
             }
         } else {
             if (pendingBook != null && downloadingMap.isEmpty()) {
                 Log.d(LOG_TAG, "download finish " + pendingBook);
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle("Finished downloading Book !")
+                        .setContentText(pendingBook.toString())
+                        .setSmallIcon(R.drawable.ic_file_download)
+                        .build();
+                notificationManager.notify(pendingBook.getId(),Integer.valueOf(pendingBook.getId()), notification);
                 String nextBookUrl = waitingBooksQueue.poll();
                 if (nextBookUrl != null) {
                     pendingBook = null;
@@ -195,7 +217,7 @@ public class DownloadService extends IntentService {
             page.setNewLink(cursor.getString(0));
             page.setUrl(cursor.getString(1));
             /* check in downloading map */
-            if(!downloadingMap.containsValue(page)) {
+            if (!downloadingMap.containsValue(page)) {
                 ContentValues values = null;
                 try {
                     values = DatabaseUtils.getPageData(this, page.getId(), page.getUrl(), page.getNewLink());
@@ -213,60 +235,41 @@ public class DownloadService extends IntentService {
     }
 
     private void doDownload(Page page, String imgSrc, String title, String fileName) {
-        String path = getFilesDir().getAbsolutePath()+File.separator+title+File.separator+fileName;
-        FileDownloadListener fileDownloadListener = new FileDownloadListener() {
+        String path = getFilesDir().getAbsolutePath() + File.separator + title + File.separator + fileName;
+        FileDownloadListener listener = new FileDownloadListener() {
 
             @Override
-            protected void pending(BaseDownloadTask baseDownloadTask, int loaded, int total) {
-                if(total != 0) {
-                    Log.d(LOG_TAG, "pending " + baseDownloadTask.getFilename() + ":" + (loaded * 100 / total) + "%");
-                }else{
-                    Log.d(LOG_TAG, "pending " + baseDownloadTask.getFilename());
-                }
+            protected void pending(BaseDownloadTask baseDownloadTask, int progress, int total) {
+                DownloadService.this.pending(baseDownloadTask, progress, total);
             }
 
             @Override
-            protected void progress(BaseDownloadTask baseDownloadTask, int loaded, int total) {
-                Log.d(LOG_TAG, "progress " + baseDownloadTask.getFilename() + ":" + (loaded * 100 / total) + "%");
+            protected void progress(BaseDownloadTask baseDownloadTask, int progress, int total) {
+                DownloadService.this.progress(baseDownloadTask, progress, total);
             }
 
             @Override
             protected void completed(BaseDownloadTask baseDownloadTask) {
-                Page page = downloadingMap.remove(baseDownloadTask.getId());
-                String localUrl = "file://"+baseDownloadTask.getPath();
-                Log.d(LOG_TAG, "Download successfully " + baseDownloadTask.getFilename());
-                ContentValues values = new ContentValues();
-                values.put(PageConstants.SRC, localUrl);
-                getContentResolver().update(BookProvider.PAGES_CONTENT_URI, values, PageConstants._ID+"=?", new String[]{page.getId()});
-                if (pendingBook != null) {
-                    Intent intent = new Intent(DownloadService.this, DownloadService.class);
-                    intent.setAction(ACTION_DOWNLOAD_NEXT);
-                    startService(intent);
-                }
+                DownloadService.this.completed(baseDownloadTask);
             }
 
             @Override
-            protected void paused(BaseDownloadTask baseDownloadTask, int i, int i1) {
-
+            protected void paused(BaseDownloadTask baseDownloadTask, int progress, int total) {
+                DownloadService.this.paused(baseDownloadTask, progress, total);
             }
 
             @Override
             protected void error(BaseDownloadTask baseDownloadTask, Throwable throwable) {
-                Page page = downloadingMap.remove(baseDownloadTask.getId());
-                Log.d(LOG_TAG, "Download failed " + baseDownloadTask.getFilename());
-                Intent intent = new Intent(DownloadService.this, DownloadService.class);
-                intent.setAction(ACTION_DOWNLOAD_NEXT);
-                intent.putExtra(PageConstants._ID, page.getId());
-                startService(intent);
+                DownloadService.this.error(baseDownloadTask, throwable);
             }
 
             @Override
             protected void warn(BaseDownloadTask baseDownloadTask) {
-
+                DownloadService.this.warn(baseDownloadTask);
             }
         };
         int downloadId = FileDownloader.getImpl().create(imgSrc).setPath(path)
-                .setListener(fileDownloadListener).start();
+                .setListener(listener).start();
         downloadingMap.put(downloadId, page);
     }
 
@@ -282,6 +285,62 @@ public class DownloadService extends IntentService {
 
     private void doStopDownloadBook(String bookUrl) {
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    protected void pending(BaseDownloadTask baseDownloadTask, int progress, int total) {
+//        if (total != 0) {
+//            Log.d(LOG_TAG, "pending " + baseDownloadTask.getFilename() + ":" + (progress * 100 / total) + "%");
+//        } else {
+//            Log.d(LOG_TAG, "pending " + baseDownloadTask.getFilename());
+//        }
+    }
+
+    protected void progress(BaseDownloadTask baseDownloadTask, int progress, int total) {
+//        int percentage = (progress * 100) / total;
+//        Log.d(LOG_TAG, "progress " + baseDownloadTask.getFilename() + ":" + percentage + "%");
+//        NotificationManager notificationManager =
+//                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//        Notification n = new Notification.Builder(DownloadService.this)
+//                .setContentTitle("Downloading page !")
+//                .setContentText(baseDownloadTask.getFilename())
+//                .setProgress(total, progress, false)
+//                .setSmallIcon(R.drawable.ic_file_download)
+//                .setAutoCancel(true)
+//                .build();
+//
+//        notificationManager.notify("PAGE_PROGRESS", baseDownloadTask.getId(), n);
+    }
+
+    protected void completed(BaseDownloadTask baseDownloadTask) {
+        downloadedPage++;
+        Page page = downloadingMap.remove(baseDownloadTask.getId());
+        String localUrl = "file://" + baseDownloadTask.getPath();
+        Log.d(LOG_TAG, "Download successfully " + baseDownloadTask.getFilename());
+        ContentValues values = new ContentValues();
+        values.put(PageConstants.SRC, localUrl);
+        getContentResolver().update(BookProvider.PAGES_CONTENT_URI, values, PageConstants._ID + "=?", new String[]{page.getId()});
+        if (pendingBook != null) {
+            Intent intent = new Intent(DownloadService.this, DownloadService.class);
+            intent.setAction(ACTION_DOWNLOAD_NEXT);
+            startService(intent);
+        }
+    }
+
+    protected void paused(BaseDownloadTask baseDownloadTask, int i, int i1) {
+
+    }
+
+    protected void error(BaseDownloadTask baseDownloadTask, Throwable throwable) {
+        Page page = downloadingMap.remove(baseDownloadTask.getId());
+        Log.d(LOG_TAG, "Download failed " + baseDownloadTask.getFilename());
+        Intent intent = new Intent(DownloadService.this, DownloadService.class);
+        intent.setAction(ACTION_DOWNLOAD_NEXT);
+        intent.putExtra(PageConstants._ID, page.getId());
+        startService(intent);
+    }
+
+    protected void warn(BaseDownloadTask baseDownloadTask) {
+
     }
 
     class Page {

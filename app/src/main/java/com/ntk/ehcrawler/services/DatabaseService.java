@@ -198,20 +198,10 @@ public class DatabaseService extends IntentService {
             valuesArray[i].put(BookConstants.TYPE, book.getType());
         }
         if (0 == pageIndex) {
-            /* clear data , keep favorite books */
-            String where = BookConstants.IS_FAVORITE + "!=?";
-            String[] whereArgs = {"1"};
-            int delete = getContentResolver().delete(BookProvider.BOOKS_CONTENT_URI, where, whereArgs);
-            Log.i(LOG_TAG, "Deleted " + delete + " books");
-
             /* set hidden on all kept books, it will be unhidden when appeared in new data list*/
             ContentValues values = new ContentValues();
             values.put(BookConstants.IS_HIDDEN, true);
             int update = getContentResolver().update(BookProvider.BOOKS_CONTENT_URI, values, null, null);
-            Log.i(LOG_TAG, "Hided " + update + " books");
-
-            int delete1 = getContentResolver().delete(BookProvider.PAGES_CONTENT_URI, null, null);
-            Log.i(LOG_TAG, "Deleted " + delete1 + " Pages");
         }
         int insert = getContentResolver().bulkInsert(BookProvider.BOOKS_CONTENT_URI, valuesArray);
         Log.i(LOG_TAG, "inserted " + insert + " new books");

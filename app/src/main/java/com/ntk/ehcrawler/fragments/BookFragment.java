@@ -152,7 +152,7 @@ public class BookFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         String[] projection = null;
         String selection = null;
         String[] selectionArgs = null;
-        String sortOrder = null;
+        String sortOrder = BookConstants._ID;
         if (BookProvider.BOOKS_LOADER == id){
             uri = BookProvider.BOOKS_CONTENT_URI;
             projection = BookConstants.PROJECTION;

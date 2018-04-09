@@ -104,7 +104,9 @@ public class EHUtils {
 			String fileCount = e.select(EHConstants.ITEM_FILE_COUNT_CSS_SELECTOR).text();
 			String type = e.select(EHConstants.ITEM_TYPE_CSS_SELECTOR).attr("title");
 			String style = e.select(EHConstants.ITEM_STAR_RATE_CSS_SELECTOR).attr("style");
-			Book book = new Book(title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
+			String id = url.substring("https://e-hentai.org/g/".length());
+			id = id.substring(0, id.indexOf("/"));
+			Book book = new Book(id, title, url, imageSrc, calculateFileCount(fileCount), calculateRate(style), type);
 			books.add(book);
 		}
 		Log.i(LOG_TAG, "get books success at page " + pageIndex + " with " + books.size() + " items");
@@ -142,4 +144,5 @@ public class EHUtils {
 	public static int calculateFileCount(String text){
 		return Integer.valueOf(text.split(" files")[0]);
 	}
+
 }
