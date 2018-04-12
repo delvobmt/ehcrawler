@@ -97,7 +97,7 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
         /* prepare new data for next page*/
         int count = cursor.getCount();
         if (position + 1 == count && loadNewAtEndPage) {
-            int pageIndex = (int) Math.ceil(position + 1 / (double) EHConstants.BOOKS_PER_PAGE);
+            int pageIndex = (int) Math.ceil((position + 1) / (double) EHConstants.BOOKS_PER_PAGE);
             DatabaseService.startGetBook(mContext, pageIndex);
         }
     }
