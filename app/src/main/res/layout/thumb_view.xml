@@ -15,6 +15,13 @@
             android:id="@+id/thumb_iv"
             android:layout_width="@dimen/thumb_width"
             android:layout_height="@dimen/thumb_height" />
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/save_iv"
+            android:layout_width="@dimen/icon"
+            android:layout_height="@dimen/icon"
+            android:src="@drawable/ic_save"
+            android:layout_gravity="bottom|right"
+            android:background="@color/colorPrimary"/>
         <ProgressBar
             android:id="@+id/loading"
             android:layout_gravity="center"

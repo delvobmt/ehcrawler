@@ -21,6 +21,7 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.adapters.ThumbAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
@@ -110,7 +111,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                 break;
         }
         if(mNeedScroll){
-            mThumbView.smoothScrollToPosition(mCurrentPosition+3);
+            mThumbView.scrollToPosition(mCurrentPosition);
                     /* in case data is cleared, page data need to reload step by step
                     * we cannot need to call load new data, util it scrolls to position */
             mNeedScroll = data.getCount() < mCurrentPosition;
@@ -133,16 +134,21 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
     private void setInfoForBook(Cursor data) {
         if(!data.moveToFirst()) return;
         mId = data.getString(0);
-        String detail = data.getString(BookConstants.DETAIL_INDEX);
-        String tags = data.getString(BookConstants.TAGS_INDEX);
+        final String url = data.getString(BookConstants.URL_INDEX);
+        final int fileCount = data.getInt(BookConstants.FILE_COUNT_INDEX);
+        final String title = data.getString(BookConstants.TITLE_INDEX);
+        final String detail = data.getString(BookConstants.DETAIL_INDEX);
+        final String tags = data.getString(BookConstants.TAGS_INDEX);
         final Boolean isFavorite = data.getInt(BookConstants.IS_FAVORITE_INDEX)==1;
 
         if (!TextUtils.isEmpty(detail)) {
             final ImageView mCover = (ImageView) findViewById(R.id.cover_iv);
+            final TextView mTitle = (TextView) findViewById(R.id.title_tv);
             final TextView mDetail = (TextView) findViewById(R.id.details_tv);
             final TextView mTags = (TextView) findViewById(R.id.tags_tv);
             final FloatingActionButton fabFavorite = (FloatingActionButton) findViewById(R.id.fab_favorite);
             final FloatingActionButton fabDownload = (FloatingActionButton) findViewById(R.id.fab_download);
+            final FloatingActionButton fabPlay = (FloatingActionButton) findViewById(R.id.fab_play);
             fabFavorite.setOnClickListener( new View.OnClickListener(){
 
                 @Override
@@ -163,6 +169,18 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
             });
             fabDownload.setVisibility(View.VISIBLE);
 
+            fabPlay.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(GalleryActivity.this, FullscreenActivity.class);
+                    intent.putExtra(BookConstants.URL, url);
+                    intent.putExtra(BookConstants.FILE_COUNT, fileCount);
+                    intent.putExtra(EHConstants.POSITION, mCurrentPosition);
+                    startActivity(intent);
+                }
+            });
+            fabPlay.setVisibility(View.VISIBLE);
+
             final String imageSrc = data.getString(BookConstants.IMAGE_SRC_INDEX);
             mCover.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 @Override
@@ -174,7 +192,7 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
                     return true;
                 }
             });
-
+            mTitle.setText(title);
             mDetail.setText(detail);
             mTags.setText(tags);
             mLoading.setVisibility(View.GONE);

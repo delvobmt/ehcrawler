@@ -90,7 +90,9 @@ public class BookAdapter extends CursorRecyclerViewAdapter<RecyclerView.ViewHold
                 intent.putExtra(BookConstants.URL, url);
                 intent.putExtra(BookConstants.FILE_COUNT, fileCount);
                 mContext.startActivity(intent);
-                saveCurrentPosition(position);
+                if(loadNewAtEndPage) {
+                    saveCurrentPosition(position);
+                }
             }
         });
 

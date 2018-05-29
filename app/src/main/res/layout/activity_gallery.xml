@@ -40,11 +40,18 @@
                     android:layout_weight="1"
                     android:layout_height="match_parent">
                     <android.support.v7.widget.AppCompatTextView
+                        android:id="@+id/title_tv"
+                        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <android.support.v7.widget.AppCompatTextView
                         android:id="@+id/details_tv"
+                        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                     <android.support.v7.widget.AppCompatTextView
                         android:id="@+id/tags_tv"
+                        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -77,14 +84,25 @@
         android:visibility="gone"/>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_download"
+        android:id="@+id/fab_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         app:rippleColor="@color/colorPrimary"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|center"
-        app:srcCompat="@drawable/ic_file_download"
+        app:srcCompat="@drawable/ic_play"
+        android:visibility="gone"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
+        app:rippleColor="@color/colorPrimary"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="bottom|left"
+        app:srcCompat="@drawable/ic_save"
         android:visibility="gone"/>
 
 </android.support.design.widget.CoordinatorLayout>
