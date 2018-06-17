@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
@@ -26,7 +27,7 @@ import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 
-public class FullscreenActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class FullscreenActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
     private String LOG_TAG = "LOG_" + FullscreenActivity.class.getName();
 
@@ -193,6 +194,8 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
             }
         });
 
+        findViewById(R.id.button_action).setOnClickListener(this);
+        findViewById(R.id.button_next).setOnClickListener(this);
         getSupportLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
     }
 
@@ -211,17 +214,20 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
         Log.d(LOG_TAG, keyCode + " key code" + event.getKeyCode());
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:{
-                int currentItem = mContentView.getCurrentItem();
-                mContentView.setCurrentItem(currentItem + 1);
+                movePage(1);
             } break;
             case KeyEvent.KEYCODE_VOLUME_UP:{
-                int currentItem = mContentView.getCurrentItem();
-                mContentView.setCurrentItem(currentItem - 1);
+                movePage(-1);
             } break;
             default:
                 return super.onKeyDown(keyCode, event);
         }
         return true;
+    }
+
+    private void movePage(int number) {
+        int currentItem = mContentView.getCurrentItem();
+        mContentView.setCurrentItem(currentItem + number);
     }
 
     @Override
@@ -261,5 +267,17 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
     protected void onStop() {
         DatabaseService.startUpdateBookPosition(this ,mURL, mPosition);
         super.onStop();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.button_action:
+                onBackPressed();
+                break;
+            case R.id.button_next:
+                movePage(1);
+                break;
+        }
     }
 }

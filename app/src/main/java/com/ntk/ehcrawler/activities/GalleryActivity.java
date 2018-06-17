@@ -142,7 +142,6 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
         final Boolean isFavorite = data.getInt(BookConstants.IS_FAVORITE_INDEX)==1;
 
         if (!TextUtils.isEmpty(detail)) {
-            final ImageView mCover = (ImageView) findViewById(R.id.cover_iv);
             final TextView mTitle = (TextView) findViewById(R.id.title_tv);
             final TextView mDetail = (TextView) findViewById(R.id.details_tv);
             final TextView mTags = (TextView) findViewById(R.id.tags_tv);
@@ -181,17 +180,6 @@ public class GalleryActivity extends AppCompatActivity implements LoaderManager.
             });
             fabPlay.setVisibility(View.VISIBLE);
 
-            final String imageSrc = data.getString(BookConstants.IMAGE_SRC_INDEX);
-            mCover.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    final int width = mCover.getMeasuredWidth();
-                    final int height = 16*width/9;
-                    Picasso.with(mCover.getContext()).load(imageSrc).resize(width, height).centerCrop()
-                            .into(mCover);
-                    return true;
-                }
-            });
             mTitle.setText(title);
             mDetail.setText(detail);
             mTags.setText(tags);

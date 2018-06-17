@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -154,16 +155,28 @@ public class DownloadService extends IntentService {
     private void downloadNext() {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if(pendingBook != null) {
-            Notification notification = new Notification.Builder(DownloadService.this)
+        if (pendingBook != null) {
+            StringBuilder text = new StringBuilder("waiting book: ").append(waitingBooksQueue.size())
+                    .append("\n").append(downloadedPage).append("/").append(pendingBook.getFileCount());
+            try {
+                for (Page page : downloadingMap.values()) {
+
+                    text.append("\n").append("Downloading:")
+                            .append("\n").append(page.getSrc().substring(page.getSrc().lastIndexOf("/") + 1));
+                }
+            }catch (Exception e){
+
+            }
+            Notification notification = new NotificationCompat.Builder(DownloadService.this)
                     .setContentTitle("Downloading Book !")
                     .setContentText(pendingBook.getTitle())
                     .setProgress(pendingBook.getFileCount(), downloadedPage, false)
                     .setSmallIcon(R.drawable.ic_file_download)
                     .setAutoCancel(true)
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
                     .build();
 
-            notificationManager.notify(pendingBook.getId(),Integer.valueOf(pendingBook.getId()), notification);
+            notificationManager.notify(pendingBook.getId(), Integer.valueOf(pendingBook.getId()), notification);
         }
         if (!waitingPagesQueue.isEmpty()) {
             String title = pendingBook.getTitle();
@@ -182,26 +195,26 @@ public class DownloadService extends IntentService {
                 page.setNewLink(cv.getAsString(PageConstants.NEWLINK));
             }
             String fileName = imgSrc.substring(imgSrc.lastIndexOf("/") + 1);
-            Uri uri = Uri.parse(imgSrc);
-            if (!uri.getScheme().equals("file")) {
-                Log.i(LOG_TAG, "Start download page " + imgSrc);
-                doDownload(page, imgSrc, title, fileName);
-            }
+            doDownload(page, imgSrc, title, fileName);
         } else {
             if (pendingBook != null && downloadingMap.isEmpty()) {
-                Log.d(LOG_TAG, "download finish " + pendingBook);
-                Notification notification = new Notification.Builder(this)
-                        .setContentTitle("Finished downloading Book !")
-                        .setContentText(pendingBook.toString())
+                Notification notification = new NotificationCompat.Builder(this)
+                        .setContentTitle("Downloaded Book !")
+                        .setContentText(pendingBook.getTitle())
                         .setSmallIcon(R.drawable.ic_file_download)
                         .build();
-                notificationManager.notify(pendingBook.getId(),Integer.valueOf(pendingBook.getId()), notification);
-                String nextBookUrl = waitingBooksQueue.poll();
-                if (nextBookUrl != null) {
-                    pendingBook = null;
-                    doStartDownloadBook(nextBookUrl);
-                } else {
-                    clear();
+                notificationManager.notify(pendingBook.getId(), Integer.valueOf(pendingBook.getId()), notification);
+                downloadedPage = 0;
+                if (downloadingMap.isEmpty() && waitingPagesQueue.isEmpty()) {
+                    Log.d(LOG_TAG, "download finish " + pendingBook);
+
+                    String nextBookUrl = waitingBooksQueue.poll();
+                    if (nextBookUrl != null) {
+                        pendingBook = null;
+                        doStartDownloadBook(nextBookUrl);
+                    } else {
+                        clear();
+                    }
                 }
             }
         }
@@ -228,14 +241,23 @@ public class DownloadService extends IntentService {
                 String imgSrc = values.getAsString(PageConstants.SRC);
                 page.setSrc(imgSrc);
                 String fileName = imgSrc.substring(imgSrc.lastIndexOf("/") + 1);
-                Log.i(LOG_TAG, "re-doDownload page " + fileName);
                 doDownload(page, imgSrc, title, fileName);
             }
         }
     }
 
     private void doDownload(Page page, String imgSrc, String title, String fileName) {
+        title = title.replaceAll("[\\\\/*?<>]","");
+        fileName = fileName.replaceAll("[\\\\/*?<>]", "");
         String path = getFilesDir().getAbsolutePath() + File.separator + title + File.separator + fileName;
+
+        if(imgSrc.startsWith("file://")){
+            File file = new File(path.substring("file://".length()));
+            if (file.exists() && file.length() > 0 )
+                return;
+        }
+
+        Log.i(LOG_TAG, "Start download page " + imgSrc);
         FileDownloadListener listener = new FileDownloadListener() {
 
             @Override
@@ -314,11 +336,17 @@ public class DownloadService extends IntentService {
     protected void completed(BaseDownloadTask baseDownloadTask) {
         downloadedPage++;
         Page page = downloadingMap.remove(baseDownloadTask.getId());
-        String localUrl = "file://" + baseDownloadTask.getPath();
-        Log.d(LOG_TAG, "Download successfully " + baseDownloadTask.getFilename());
-        ContentValues values = new ContentValues();
-        values.put(PageConstants.SRC, localUrl);
-        getContentResolver().update(BookProvider.PAGES_CONTENT_URI, values, PageConstants._ID + "=?", new String[]{page.getId()});
+        if(page != null) {
+            String localUrl = "file://" + baseDownloadTask.getPath();
+            Log.d(LOG_TAG, "Download successfully " + baseDownloadTask.getFilename());
+            File file = new File(localUrl.substring("file://".length()));
+            if (!file.exists() || file.length() == 0) {
+                localUrl = "";
+            }
+            ContentValues values = new ContentValues();
+            values.put(PageConstants.SRC, localUrl);
+            getContentResolver().update(BookProvider.PAGES_CONTENT_URI, values, PageConstants._ID + "=?", new String[]{page.getId()});
+        }
         if (pendingBook != null) {
             Intent intent = new Intent(DownloadService.this, DownloadService.class);
             intent.setAction(ACTION_DOWNLOAD_NEXT);

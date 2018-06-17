@@ -1,6 +1,7 @@
 package com.ntk.ehcrawler.fragments;
 
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.github.chrisbanes.photoview.EHPhotoView;
 import com.ntk.ehcrawler.R;
@@ -22,6 +22,8 @@ import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+
+import java.io.File;
 
 public class PageFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
@@ -69,6 +71,14 @@ public class PageFragment extends Fragment implements LoaderManager.LoaderCallba
             @Override
             public void onError() {
                 mLoading.setVisibility(View.GONE);
+                if (imageSrc.startsWith("file://")){
+                    ContentValues values = new ContentValues();
+                    values.put(PageConstants.SRC, "");
+                    getContext().getContentResolver().update(BookProvider.PAGES_CONTENT_URI, values, PageConstants._ID + "=?", new String[]{mId});
+                    if(new File(imageSrc).delete()){
+                        Log.e(LOG_TAG, "IMAGE ERROR! deleted file " + imageSrc);
+                    }
+                }
             }
         });
     }
