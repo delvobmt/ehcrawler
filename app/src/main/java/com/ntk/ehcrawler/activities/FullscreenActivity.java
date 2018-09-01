@@ -16,8 +16,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.R;
@@ -27,7 +26,7 @@ import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 
-public class FullscreenActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
+public class FullscreenActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private String LOG_TAG = "LOG_" + FullscreenActivity.class.getName();
 
@@ -63,7 +62,8 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+//                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            );
         }
     };
     private final Runnable mShowPart2Runnable = new Runnable() {
@@ -83,6 +83,7 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
             hide();
         }
     };
+
     /**
      * Touch listener to use for in-layout UI controls to delay hiding the
      * system UI. This is to prevent the jarring behavior of controls going away
@@ -154,6 +155,7 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
     private String mURL;
     private ViewPager mContentView;
     private int mPosition;
+    private TextView mCurrentPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +166,8 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
         mURL = getIntent().getStringExtra(BookConstants.URL);
         final int bookSize = getIntent().getIntExtra(BookConstants.FILE_COUNT, 0);
         mPosition = getIntent().getIntExtra(EHConstants.POSITION, 0);
+
+        mCurrentPage = (TextView) findViewById(R.id.current_page);
 
         mContentView = (ViewPager) findViewById(R.id.fullscreen_content);
         mAdapter = new SwipePageAdapter(this, getSupportFragmentManager(), bookSize);
@@ -177,8 +181,8 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
             @Override
             public void onPageSelected(int position) {
                 mPosition = position;
-                String msg = String.valueOf(position+1).concat(" of ").concat(String.valueOf(bookSize));
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                String msg = String.valueOf(position+1).concat("/").concat(String.valueOf(bookSize));
+                mCurrentPage.setText(msg);
             }
 
             @Override
@@ -194,8 +198,6 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
             }
         });
 
-        findViewById(R.id.button_action).setOnClickListener(this);
-        findViewById(R.id.button_next).setOnClickListener(this);
         getSupportLoaderManager().initLoader(BookProvider.PAGE_INFO_LOADER, null, this);
     }
 
@@ -267,17 +269,5 @@ public class FullscreenActivity extends AppCompatActivity implements LoaderManag
     protected void onStop() {
         DatabaseService.startUpdateBookPosition(this ,mURL, mPosition);
         super.onStop();
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.button_action:
-                onBackPressed();
-                break;
-            case R.id.button_next:
-                movePage(1);
-                break;
-        }
     }
 }

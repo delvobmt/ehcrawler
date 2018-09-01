@@ -39,8 +39,7 @@
             android:name=".activities.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label=""
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".activities.SearchActivity"
             android:label="@string/title_activity_search" />

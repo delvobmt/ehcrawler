@@ -247,8 +247,8 @@ public class DownloadService extends IntentService {
     }
 
     private void doDownload(Page page, String imgSrc, String title, String fileName) {
-        title = title.replaceAll("[\\\\/*?<>]","");
-        fileName = fileName.replaceAll("[\\\\/*?<>]", "");
+        title = title.replaceAll("[\\\\/*?<>#$]","");
+        fileName = fileName.replaceAll("[\\\\/*?<>#$]", "");
         String path = getFilesDir().getAbsolutePath() + File.separator + title + File.separator + fileName;
 
         if(imgSrc.startsWith("file://")){
