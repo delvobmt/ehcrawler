@@ -21,7 +21,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.R;
+import com.ntk.R;
 import com.ntk.ehcrawler.adapters.BookAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;

@@ -13,8 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.ntk.R;
 import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.activities.FullscreenActivity;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;

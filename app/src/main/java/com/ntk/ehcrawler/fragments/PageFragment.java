@@ -16,7 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.chrisbanes.photoview.EHPhotoView;
-import com.ntk.ehcrawler.R;
+import com.ntk.R;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;

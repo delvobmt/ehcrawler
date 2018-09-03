@@ -2,9 +2,7 @@ package com.ntk.ehcrawler.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
-import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -17,19 +15,16 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ntk.R;
 import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.adapters.ThumbAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.ntk.ehcrawler.services.DatabaseService;
 import com.ntk.ehcrawler.services.DownloadService;
-import com.squareup.picasso.Picasso;
 
 public class GalleryActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 

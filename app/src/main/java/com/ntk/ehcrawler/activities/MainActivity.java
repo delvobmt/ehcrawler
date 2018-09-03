@@ -12,7 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.liulishuo.filedownloader.FileDownloader;
-import com.ntk.ehcrawler.R;
+import com.ntk.R;
 import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.fragments.BookFragment;
 import com.ntk.ehcrawler.fragments.FavoriteBookFragment;

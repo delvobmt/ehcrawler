@@ -13,10 +13,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.ntk.R;
 import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.activities.GalleryActivity;
 import com.ntk.ehcrawler.model.BookConstants;
 import com.ntk.ehcrawler.services.DatabaseService;

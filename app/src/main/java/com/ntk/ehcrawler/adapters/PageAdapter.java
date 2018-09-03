@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.ntk.ehcrawler.R;
+import com.ntk.R;
 import com.ntk.ehcrawler.ContextHolder;
 import com.ntk.ehcrawler.model.PageConstants;
 import com.squareup.picasso.Callback;

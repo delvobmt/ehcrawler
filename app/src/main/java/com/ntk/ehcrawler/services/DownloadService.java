@@ -20,7 +20,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.R;
+import com.ntk.R;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;

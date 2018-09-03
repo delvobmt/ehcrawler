@@ -5,13 +5,12 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
-import android.preference.SwitchPreference;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.ehcrawler.MyPreference;
-import com.ntk.ehcrawler.R;
+import com.ntk.R;
 
 public class SearchActivity extends AppCompatPreferenceActivity implements Preference.OnPreferenceChangeListener {
 

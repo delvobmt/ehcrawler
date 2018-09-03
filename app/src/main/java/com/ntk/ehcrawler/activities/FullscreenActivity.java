@@ -18,8 +18,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import com.ntk.R;
 import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.R;
 import com.ntk.ehcrawler.adapters.SwipePageAdapter;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.BookConstants;
