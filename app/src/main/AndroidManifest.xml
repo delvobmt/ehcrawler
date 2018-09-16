@@ -13,40 +13,39 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".ehcrawler.activities.MainActivity">
+        <!--<activity android:name=".ehcrawler.activities.MainActivity">-->
             <!--<intent-filter>-->
                 <!--<action android:name="android.intent.action.MAIN" />-->
 
                 <!--<category android:name="android.intent.category.LAUNCHER" />-->
             <!--</intent-filter>-->
-        </activity>
+        <!--</activity>-->
 
-        <service
-            android:name=".ehcrawler.services.DatabaseService"
-            android:exported="false" />
+        <!--<service-->
+            <!--android:name=".ehcrawler.services.DatabaseService"-->
+            <!--android:exported="false" />-->
 
-        <provider
-            android:name=".ehcrawler.database.BookProvider"
-            android:authorities="com.ntk.ehcrawler.providers"
-            android:enabled="true"
-            android:exported="false" />
+        <!--<provider-->
+            <!--android:name=".ehcrawler.database.BookProvider"-->
+            <!--android:authorities="com.ntk.ehcrawler.providers"-->
+            <!--android:enabled="false"-->
+            <!--android:exported="false" />-->
 
-        <activity
-            android:name=".ehcrawler.activities.GalleryActivity"
-            android:label=""
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".ehcrawler.activities.FullscreenActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label=""
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".ehcrawler.activities.SearchActivity"
-            android:label="@string/title_activity_search" />
+        <!--<activity-->
+            <!--android:name=".ehcrawler.activities.GalleryActivity"-->
+            <!--android:theme="@style/AppTheme.NoActionBar" />-->
+        <!--<activity-->
+            <!--android:name=".ehcrawler.activities.FullscreenActivity"-->
+            <!--android:configChanges="orientation|keyboardHidden|screenSize"-->
+            <!--android:label=""-->
+            <!--android:theme="@style/FullscreenTheme" />-->
+        <!--<activity-->
+            <!--android:name=".ehcrawler.activities.SearchActivity"-->
+            <!--android:label="@string/title_activity_search" />-->
 
-        <service
-            android:name=".ehcrawler.services.DownloadService"
-            android:exported="false" />
+        <!--<service-->
+            <!--android:name=".ehcrawler.services.DownloadService"-->
+            <!--android:exported="false" />-->
 
         <activity android:name=".reactor.ReactorActivity">
             <intent-filter>
@@ -55,6 +54,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".reactor.ReactorContentActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

@@ -15,6 +15,14 @@ public class VideoGifContent extends Content{
         this.postSrc = postSrc;
     }
 
+    public String getSrc() {
+        return src;
+    }
+
+    public void setSrc(String src) {
+        this.src = src;
+    }
+
     public String getPostSrc() {
         return postSrc;
     }

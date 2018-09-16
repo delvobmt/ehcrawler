@@ -34,18 +34,16 @@ public class ReactorUtils {
             Document document = Jsoup.connect(url).cookies(ContextHolder.getCookies()).get();
             return load(document);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage(), e);
         }
         return Collections.emptyList();
     }
 
     private static List<Post> load(Document document) {
         List<Post> posts = new ArrayList<>();
-        int maxPage = getMaxPage(document);
-        System.out.println(maxPage);
         Elements elements = document.select(".postContainer");
         for (Element e: elements) {
-            Post post = new Post();
+            Post post = new Post(e.attr("id"));
             Elements contents = e.select(".post_content .image");
             for(Element content :contents) {
                 String className = content.child(0).className();
@@ -84,7 +82,7 @@ public class ReactorUtils {
         try {
             return Integer.valueOf(document.select(".pagination_expanded").get(0).child(0).text());
         }catch (Exception e){
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage(), e);
             return -1;
         }
     }
