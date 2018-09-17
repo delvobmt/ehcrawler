@@ -16,6 +16,7 @@ import android.view.View;
 
 import com.ntk.R;
 import com.ntk.reactor.adapter.PostAdapter;
+import com.ntk.reactor.database.PostDatabaseHelper;
 
 import org.jsoup.helper.StringUtil;
 
@@ -104,7 +105,9 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
     private void loadPrefs() {
         String nTag = mPreferences.getString(ReactorConstants.TAG_KEY, mCurrentTag);
         int nIndex = mPreferences.getInt(getCurrentIndexKey(), mCurrentIndex);
-        if(!mCurrentTag.equals(nTag) || mCurrentIndex != nIndex || (mCurrentIndex == 1 && StringUtil.isBlank(mCurrentTag))) {
+        if(!mCurrentTag.equals(nTag) ||
+                mCurrentIndex != nIndex ||
+                (mCurrentIndex == 1 && StringUtil.isBlank(mCurrentTag) && PostDatabaseHelper.isEmpty())) {
             mCurrentTag = nTag;
             mCurrentIndex = nIndex;
             mPostAdapter.clear();

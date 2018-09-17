@@ -7,9 +7,17 @@
     tools:context="com.ntk.reactor.ReactorActivity">
 
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/tags_view"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/black_overlay"/>
+
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/reactor_content_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/button"
         android:background="@color/black_overlay"/>
 
     <android.support.design.widget.FloatingActionButton

@@ -44,6 +44,10 @@ public class ReactorUtils {
         Elements elements = document.select(".postContainer");
         for (Element e: elements) {
             Post post = new Post(e.attr("id"));
+            Elements tagsElement = e.select(".taglist a");
+            for (Element tag : tagsElement) {
+                post.addTag(tag.text());
+            }
             Elements contents = e.select(".post_content .image");
             for(Element content :contents) {
                 String className = content.child(0).className();

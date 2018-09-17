@@ -1,20 +1,13 @@
 package com.ntk.reactor;
 
-import android.graphics.Point;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 
 import com.ntk.R;
-import com.ntk.reactor.adapter.PostAdapter;
 import com.ntk.reactor.adapter.PostContentAdapter;
-
-import java.util.List;
+import com.ntk.reactor.adapter.TagAdapter;
 
 public class ReactorContentActivity extends AppCompatActivity{
 
@@ -22,19 +15,27 @@ public class ReactorContentActivity extends AppCompatActivity{
     public static final String PAGE_ARG = "PAGE";
 
     private PostContentAdapter mPostAdapter;
+    private TagAdapter mTagAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_reactor);
+        setContentView(R.layout.activity_reactor_content);
 
         int position = getIntent().getIntExtra(ReactorConstants.POSITION_KEY, 0);
 
-        RecyclerView contentView = (RecyclerView) findViewById(R.id.reactor_content_view);
+        RecyclerView contentView = findViewById(R.id.reactor_content_view);
         mPostAdapter = new PostContentAdapter(this, position);
         contentView.setAdapter(mPostAdapter);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        contentView.setLayoutManager(layoutManager);
+        LinearLayoutManager lm1 = new LinearLayoutManager(this);
+        contentView.setLayoutManager(lm1);
+
+        RecyclerView tagView = findViewById(R.id.tags_view);
+        mTagAdapter = new TagAdapter(this, position);
+        tagView.setAdapter(mTagAdapter);
+        LinearLayoutManager lm2 = new LinearLayoutManager(this);
+        lm2.setOrientation(LinearLayoutManager.HORIZONTAL);
+        tagView.setLayoutManager(lm2);
     }
 
 }

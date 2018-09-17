@@ -7,8 +7,18 @@ public class Post {
     private String id;
     private List<Content> contents = new ArrayList<>();
 
+    private List<String> tags = new ArrayList<>();
+
     public Post(String id) {
         this.id = id;
+    }
+
+    public void addTag(String tag){
+        tags.add(tag);
+    }
+
+    public List<String> getTags() {
+        return tags;
     }
 
     public void addContent(Content content) {
@@ -17,10 +27,6 @@ public class Post {
 
     public List<Content> getContents() {
         return contents;
-    }
-
-    public void setContents(List<Content> contents) {
-        this.contents = contents;
     }
 
     @Override

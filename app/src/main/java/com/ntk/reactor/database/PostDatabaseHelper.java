@@ -29,8 +29,17 @@ public class PostDatabaseHelper {
         posts.clear();
     }
 
+    public static boolean isEmpty(){
+        return posts.isEmpty();
+    }
+
     public static List<Content> getPostContentsAt(int index) {
         Post post = posts.get(index);
         return post.getContents();
+    }
+
+    public static List<String> getTagsAt(int index) {
+        Post post = posts.get(index);
+        return post.getTags();
     }
 }

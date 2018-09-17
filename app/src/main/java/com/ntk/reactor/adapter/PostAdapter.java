@@ -118,7 +118,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 textView.setVisibility(View.GONE);
                 GlideApp.with(mContext).clear(imageView);
                 Picasso.with(mContext).cancelRequest(imageView);
-                Picasso.with(mContext).load(src).into(imageView);
+                Picasso.with(mContext).load(src).error(R.drawable.ic_error).into(imageView);
             } else if (VideoGifContent.class.equals(firstContent.getClass())) {
                 final String src = ((VideoGifContent) firstContent).getSrc();
                 final String postSrc = ((VideoGifContent) firstContent).getPostSrc();
