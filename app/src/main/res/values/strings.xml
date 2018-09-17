@@ -93,5 +93,7 @@
     <string name="pref_title_vibrate">Vibrate</string>
 
     <string name="title_activity_fullscreen2">FullscreenActivity2</string>
+    <string name="reactor_tag">tag</string>
+    <string name="reactor_index">index</string>
 
 </resources>

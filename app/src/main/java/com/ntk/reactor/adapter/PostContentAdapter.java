@@ -27,6 +27,7 @@ import com.ntk.reactor.model.Content;
 import com.ntk.reactor.model.ImageContent;
 import com.ntk.reactor.model.Post;
 import com.ntk.reactor.model.VideoGifContent;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -56,13 +57,27 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         final ImageView imageView = view.findViewById(R.id.image_iv);
         final TextView textView = view.findViewById(R.id.gif_text);
         final View progress = view.findViewById(R.id.progress);
+        progress.setVisibility(View.VISIBLE);
         final Content content = mContents.get(position);
         if (ImageContent.class.equals(content.getClass())) {
             final String src = ((ImageContent) content).getSrc();
             textView.setVisibility(View.GONE);
             GlideApp.with(mContext).clear(imageView);
             Picasso.with(mContext).cancelRequest(imageView);
-            Picasso.with(mContext).load(src).into(imageView);
+            Picasso.with(mContext).load(src).into(imageView, new Callback() {
+                @Override
+                public void onSuccess() {
+                    textView.setVisibility(View.GONE);
+                    progress.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onError() {
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText("FAILED");
+                    progress.setVisibility(View.GONE);
+                }
+            });
         } else if (VideoGifContent.class.equals(content.getClass())) {
             final String src = ((VideoGifContent) content).getSrc();
             final String postSrc = ((VideoGifContent) content).getPostSrc();
@@ -71,7 +86,6 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             Picasso.with(mContext).cancelRequest(imageView);
             GlideApp.with(mContext)
                     .load(src)
-                    .onlyRetrieveFromCache(true)
                     .error(GlideApp.with(mContext).load(postSrc))
                     .fitCenter()
                     .listener(new RequestListener<Drawable>() {
@@ -88,36 +102,6 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                         }
                     })
                     .into(imageView);
-            imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    textView.setVisibility(View.GONE);
-                    progress.setVisibility(View.VISIBLE);
-                    GlideApp.with(mContext).clear(imageView);
-                    GlideApp.with(mContext)
-                            .asGif()
-                            .placeholder(imageView.getDrawable())
-                            .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.ALL))
-                            .load(src)
-                            .fitCenter()
-                            .listener(new RequestListener<GifDrawable>() {
-                                @Override
-                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                    textView.setVisibility(View.VISIBLE);
-                                    textView.setText("FAILED GIF");
-                                    progress.setVisibility(View.GONE);
-                                    return false;
-                                }
-
-                                @Override
-                                public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
-                                    progress.setVisibility(View.GONE);
-                                    return false;
-                                }
-                            })
-                            .into(imageView);
-                }
-            });
         }
     }
 
