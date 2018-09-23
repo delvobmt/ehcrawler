@@ -91,6 +91,8 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            textView.setText("GIF FAILURE");
+                            progress.setVisibility(View.GONE);
                             return false;
                         }
 

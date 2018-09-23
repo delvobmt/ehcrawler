@@ -42,4 +42,8 @@ public class PostDatabaseHelper {
         Post post = posts.get(index);
         return post.getTags();
     }
+
+    public static void updatePost(Post post, int position) {
+        posts.set(position, post);
+    }
 }

@@ -1,13 +1,15 @@
 package com.ntk.reactor.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Post {
     private String id;
     private List<Content> contents = new ArrayList<>();
-
     private List<String> tags = new ArrayList<>();
+    private String url;
+    private boolean isLoaded;
 
     public Post(String id) {
         this.id = id;
@@ -22,11 +24,33 @@ public class Post {
     }
 
     public void addContent(Content content) {
-        this.contents.add(content);
+        if (content != null) {
+            this.contents.add(content);
+        }
+    }
+
+    public void addContent(Collection contents) {
+        this.contents.addAll(contents);
     }
 
     public List<Content> getContents() {
         return contents;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public boolean isLoaded() {
+        return isLoaded;
+    }
+
+    public void setLoaded(boolean loaded) {
+        isLoaded = loaded;
     }
 
     @Override

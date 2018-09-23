@@ -112,6 +112,14 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             final View showMoreView = view.findViewById(R.id.show_more_view);
             final AtomicBoolean isMore = new AtomicBoolean(post.getContents().size() > 1);
             showMoreView.setVisibility(isMore.get() ? View.VISIBLE : View.GONE);
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, ReactorContentActivity.class);
+                    intent.putExtra(ReactorConstants.POSITION_KEY, position);
+                    mContext.startActivity(intent);
+                }
+            });
             final Content firstContent = post.getContents().get(0);
             if (ImageContent.class.equals(firstContent.getClass())) {
                 final String src = ((ImageContent) firstContent).getSrc();
@@ -128,7 +136,20 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 GlideApp.with(mContext)
                         .load(src)
                         .onlyRetrieveFromCache(true)
-                        .error(GlideApp.with(mContext).load(postSrc))
+                        .error(GlideApp.with(mContext).load(postSrc).error(R.drawable.ic_error).addListener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                if(postSrc.endsWith(".gif")){
+                                    textView.setVisibility(View.GONE);
+                                }
+                                return false;
+                            }
+                        }))
                         .fitCenter()
                         .listener(new RequestListener<Drawable>() {
                             @Override
@@ -145,20 +166,12 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         })
                         .into(imageView);
             }
-            imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(mContext, ReactorContentActivity.class);
-                    intent.putExtra(ReactorConstants.POSITION_KEY, position);
-                    mContext.startActivity(intent);
-                }
-            });
         }
     }
 
     @Override
     public int getItemCount() {
-        return PostDatabaseHelper.size();
+        return PostDatabaseHelper.size()+1;
     }
 
     /**
@@ -178,7 +191,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public void onReachEnd() {
         mIsReachEnd = true;
-        notifyItemChanged(bottomItemPosition());
+        notifyDataSetChanged();
     }
 
     public void addPosts(List<Post> newPosts) {

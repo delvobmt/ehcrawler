@@ -37,7 +37,7 @@ public class SearchActivity extends AppCompatPreferenceActivity implements Prefe
 
         Preference indexPref = findPreference(ReactorConstants.INDEX_KEY);
         indexPref.setOnPreferenceChangeListener(this);
-        int index = mPreferences.getInt(getCurrentIndexKey(), 0);
+        int index = mPreferences.getInt(ReactorUtils.getCurrentIndexKey(mCurrentTag), 1);
         indexPref.setSummary(String.valueOf(index));
         indexPref.setDefaultValue(String.valueOf(index));
     }
@@ -70,21 +70,16 @@ public class SearchActivity extends AppCompatPreferenceActivity implements Prefe
                 String nTag = String.valueOf(newValue);
                 edit.putString(ReactorConstants.TAG_KEY, nTag);
                 mCurrentTag = nTag;
-                int nIndex = mPreferences.getInt(getCurrentIndexKey(), 1);
+                int nIndex = mPreferences.getInt(ReactorUtils.getCurrentIndexKey(mCurrentTag), 1);
                 findPreference(ReactorConstants.INDEX_KEY).setSummary(String.valueOf(nIndex));
             } else if (key.equals(ReactorConstants.INDEX_KEY)) {
                 preference.setSummary(newValue.toString());
                 int index = Integer.valueOf(String.valueOf(newValue));
-                edit.putInt(getCurrentIndexKey(), index);
+                edit.putInt(ReactorUtils.getCurrentIndexKey(mCurrentTag), index);
             }
         }
         boolean commit = edit.commit();
         return commit;
     }
 
-    private String getCurrentIndexKey() {
-        return (TextUtils.isEmpty(mCurrentTag))?
-                ReactorConstants.INDEX_KEY
-                :ReactorConstants.INDEX_KEY.concat("_").concat(mCurrentTag);
-    }
 }
