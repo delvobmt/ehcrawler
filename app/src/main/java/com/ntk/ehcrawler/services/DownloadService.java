@@ -21,6 +21,7 @@ import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.ehcrawler.EHConstants;
 import com.ntk.R;
+import com.ntk.ehcrawler.EHUtils;
 import com.ntk.ehcrawler.database.BookProvider;
 import com.ntk.ehcrawler.model.Book;
 import com.ntk.ehcrawler.model.BookConstants;
@@ -247,8 +248,8 @@ public class DownloadService extends IntentService {
     }
 
     private void doDownload(Page page, String imgSrc, String title, String fileName) {
-        title = title.replaceAll("[\\\\/*?<>#$]","");
-        fileName = fileName.replaceAll("[\\\\/*?<>#$]", "");
+        title = EHUtils.RemoveUnFileChar(title);
+        fileName = EHUtils.RemoveUnFileChar(fileName);
         String path = getFilesDir().getAbsolutePath() + File.separator + title + File.separator + fileName;
 
         if(imgSrc.startsWith("file://")){

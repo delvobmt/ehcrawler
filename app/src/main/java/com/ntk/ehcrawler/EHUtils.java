@@ -26,6 +26,10 @@ public class EHUtils {
 
 	private static final String LOG_TAG = "LOG_" + EHUtils.class.getSimpleName();
 
+	public static String RemoveUnFileChar(String filename) {
+		return filename.replaceAll("[\\\\/*?<>#$]","");
+	}
+
 	public static ContentValues getPageData(String pageUrl, String newLink) throws IOException {
 		ContentValues contentValues = new ContentValues();
 		Map<String, String> cookies = prepareCookies(ContextHolder.getCookies());

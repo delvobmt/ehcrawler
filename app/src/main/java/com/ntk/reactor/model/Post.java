@@ -9,6 +9,7 @@ public class Post {
     private List<Content> contents = new ArrayList<>();
     private List<String> tags = new ArrayList<>();
     private String url;
+    private String commentCount;
     private boolean isLoaded;
 
     public Post(String id) {
@@ -43,6 +44,14 @@ public class Post {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(String commentCount) {
+        this.commentCount = commentCount;
     }
 
     public boolean isLoaded() {

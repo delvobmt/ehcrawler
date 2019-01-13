@@ -42,7 +42,7 @@ public class ReactorUtils {
                 Uri uri = Uri.parse(ReactorConstants.HOST);
                 String host = uri.getHost();
                 String scheme = uri.getScheme();
-                url = scheme + "://" + host + url + "/tag/" + tag;
+                url = scheme + "://" + host + "/tag/" + tag;
             }
             url = index == 0 ? url : url.concat("/").concat(String.valueOf(index));
 
@@ -62,7 +62,9 @@ public class ReactorUtils {
         Elements elements = document.select(".postContainer");
         for (Element e: elements) {
             Post post = new Post(e.attr("id"));
-            String url = e.select(".commentnum.toggleComments").attr("href");
+            Elements select = e.select(".commentnum.toggleComments");
+            String url = select.attr("href");
+            post.setCommentCount(select.text());
             post.setUrl(url);
             collectPostContent(e, post);
             collectPostTags(e, post);

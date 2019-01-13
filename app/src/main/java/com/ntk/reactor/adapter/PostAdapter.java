@@ -110,6 +110,9 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             final View progress = view.findViewById(R.id.progress);
             final Post post = PostDatabaseHelper.getPostAt(position);
             final View showMoreView = view.findViewById(R.id.show_more_view);
+            final TextView commentText = view.findViewById(R.id.comment_text);
+            commentText.setVisibility(View.VISIBLE);
+            commentText.setText(post.getCommentCount());
             final AtomicBoolean isMore = new AtomicBoolean(post.getContents().size() > 1);
             showMoreView.setVisibility(isMore.get() ? View.VISIBLE : View.GONE);
             imageView.setOnClickListener(new View.OnClickListener() {
@@ -126,7 +129,19 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 textView.setVisibility(View.GONE);
                 GlideApp.with(mContext).clear(imageView);
                 Picasso.with(mContext).cancelRequest(imageView);
-                Picasso.with(mContext).load(src).error(R.drawable.ic_error).into(imageView);
+                Picasso.with(mContext).load(src).error(R.drawable.ic_error).into(imageView, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        progress.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError() {
+                        textView.setVisibility(View.VISIBLE);
+                        textView.setText("IMAGE FAILURE");
+                        progress.setVisibility(View.GONE);
+                    }
+                });
             } else if (VideoGifContent.class.equals(firstContent.getClass())) {
                 final String src = ((VideoGifContent) firstContent).getSrc();
                 final String postSrc = ((VideoGifContent) firstContent).getPostSrc();
@@ -139,6 +154,8 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         .error(GlideApp.with(mContext).load(postSrc).error(R.drawable.ic_error).addListener(new RequestListener<Drawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                textView.setText("GIF FAILURE");
+                                progress.setVisibility(View.GONE);
                                 return false;
                             }
 
@@ -147,6 +164,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                 if(postSrc.endsWith(".gif")){
                                     textView.setVisibility(View.GONE);
                                 }
+                                progress.setVisibility(View.GONE);
                                 return false;
                             }
                         }))

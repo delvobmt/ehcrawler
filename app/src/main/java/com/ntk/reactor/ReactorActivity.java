@@ -117,10 +117,10 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
         String nTag = mPreferences.getString(ReactorConstants.TAG_KEY, mCurrentTag);
         int nIndex = mPreferences.getInt(ReactorUtils.getCurrentIndexKey(mCurrentTag), mCurrentIndex);
         if (!mCurrentTag.equals(nTag) ||
-                mCurrentIndex-1 != nIndex ||
+                Math.abs(mCurrentIndex - nIndex) > 1 ||
                 (mCurrentIndex == 1 && StringUtil.isBlank(mCurrentTag) && PostDatabaseHelper.isEmpty())) {
             mCurrentTag = nTag;
-            mCurrentIndex = nIndex;
+            mCurrentIndex = nIndex > 1 ? nIndex - 1 : nIndex;
             mPostAdapter.clear();
             mLoading = true;
             getSupportLoaderManager().restartLoader(POST_LOADER_ID, null, this).forceLoad();

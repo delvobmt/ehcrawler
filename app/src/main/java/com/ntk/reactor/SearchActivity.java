@@ -67,7 +67,7 @@ public class SearchActivity extends AppCompatPreferenceActivity implements Prefe
         if (preference.getClass().equals(EditTextPreference.class)) {
             if(key.equals(ReactorConstants.TAG_KEY)) {
                 preference.setSummary(newValue.toString());
-                String nTag = String.valueOf(newValue);
+                String nTag = String.valueOf(newValue).trim();
                 edit.putString(ReactorConstants.TAG_KEY, nTag);
                 mCurrentTag = nTag;
                 int nIndex = mPreferences.getInt(ReactorUtils.getCurrentIndexKey(mCurrentTag), 1);
