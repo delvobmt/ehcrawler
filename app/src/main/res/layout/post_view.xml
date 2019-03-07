@@ -10,10 +10,19 @@
     <com.github.chrisbanes.photoview.EHPhotoView
         android:id="@+id/image_iv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:adjustViewBounds="true"
         android:minHeight="@dimen/thumb_height"
         android:scaleType="centerCrop"/>
+
+    <com.volokh.danylo.video_player_manager.ui.VideoPlayerView
+        android:id="@+id/video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:minHeight="@dimen/thumb_height"
+        />
+
 
     <TextView
         android:id="@+id/gif_text"

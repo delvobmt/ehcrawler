@@ -156,19 +156,26 @@ public class ReactorUtils {
 
     private static VideoGifContent parseVideoContent(Element child) {
         String posterSrc = "";
-        String videoSrc = "";
+        List<String> videoSrc = new ArrayList<>(3);
+
         for(Element c : child.children()){
             if (c.tag().getName().equals("video")) {
                 posterSrc = c.attr("poster");
                 if(StringUtil.isBlank(posterSrc)){
                     posterSrc = c.select("img").attr("src");
                 }
+                if(videoSrc.size() < 3) {
+                    Elements sources = c.select("source");
+                    for (Element source : sources){
+                        videoSrc.add(source.attr("src"));
+                    }
+                }
             }
-            if(StringUtil.isBlank(videoSrc)) {
-                videoSrc = c.attr("href");
+            if(videoSrc.isEmpty()) {
+                videoSrc.add(c.attr("href"));
             }
         }
-        if(!StringUtil.isBlank(videoSrc)) {
+        if(!videoSrc.isEmpty()) {
             return new VideoGifContent(posterSrc, videoSrc);
         }
         return null;

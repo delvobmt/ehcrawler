@@ -1,12 +1,15 @@
 package com.ntk.reactor.model;
 
+import java.util.List;
+
 public class VideoGifContent extends Content{
-    private String postSrc, src;
+    private String postSrc;
+    List<String> src;
 
     public VideoGifContent() {
     }
 
-    public VideoGifContent(String postSrc, String src) {
+    public VideoGifContent(String postSrc, List<String> src) {
         this.postSrc = postSrc;
         this.src = src;
     }
@@ -15,11 +18,11 @@ public class VideoGifContent extends Content{
         this.postSrc = postSrc;
     }
 
-    public String getSrc() {
+    public List<String> getSrc() {
         return src;
     }
 
-    public void setSrc(String src) {
+    public void setSrc(List<String> src) {
         this.src = src;
     }
 

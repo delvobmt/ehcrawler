@@ -12,10 +12,21 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 
+import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.R;
 import com.ntk.reactor.adapter.PostAdapter;
 import com.ntk.reactor.database.PostDatabaseHelper;
+import com.volokh.danylo.video_player_manager.manager.PlayerItemChangeListener;
+import com.volokh.danylo.video_player_manager.manager.SingleVideoPlayerManager;
+import com.volokh.danylo.video_player_manager.manager.VideoPlayerManager;
+import com.volokh.danylo.video_player_manager.meta.MetaData;
+import com.volokh.danylo.visibility_utils.calculator.DefaultSingleItemCalculatorCallback;
+import com.volokh.danylo.visibility_utils.calculator.ListItemsVisibilityCalculator;
+import com.volokh.danylo.visibility_utils.calculator.SingleListViewItemActiveCalculator;
+import com.volokh.danylo.visibility_utils.scroll_utils.ItemsPositionGetter;
+import com.volokh.danylo.visibility_utils.scroll_utils.RecyclerViewItemPositionGetter;
 
 import org.jsoup.helper.StringUtil;
 
@@ -34,26 +45,70 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
     private int mMaxPage;
     private boolean mLoading;
 
+    /**
+     * Only the one (most visible) view should be active (and playing).
+     * To calculate visibility of views we use {@link SingleListViewItemActiveCalculator}
+     */
+    private final ListItemsVisibilityCalculator mVideoVisibilityCalculator =
+            new SingleListViewItemActiveCalculator(new DefaultSingleItemCalculatorCallback(), PostDatabaseHelper.getAllPost());
+
+    /**
+     * ItemsPositionGetter is used by {@link ListItemsVisibilityCalculator} for getting information about
+     * items position in the RecyclerView and LayoutManager
+     */
+    private ItemsPositionGetter mItemsPositionGetter;
+
+    private int mScrollState = AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
+    private RecyclerView mContentView;
+    private LinearLayoutManager mLayoutManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FileDownloader.setup(this);
         setContentView(R.layout.activity_reactor);
         Point point = new Point();
         getWindowManager().getDefaultDisplay().getSize(point);
         ContextHolder.setWidth(point.x);
         ContextHolder.setHeight(point.y);
-        RecyclerView contentView = findViewById(R.id.reactor_content_view);
+        mContentView = findViewById(R.id.reactor_content_view);
         mPostAdapter = new PostAdapter(this);
-        contentView.setAdapter(mPostAdapter);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        contentView.setLayoutManager(layoutManager);
-        contentView.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+        mContentView.setAdapter(mPostAdapter);
+        mLayoutManager = new LinearLayoutManager(this);
+        mContentView.setLayoutManager(mLayoutManager);
+        mContentView.addOnScrollListener(new EndlessRecyclerViewScrollListener(mLayoutManager) {
             @Override
             public void onLoadMore(int page) {
                 if(!mLoading)
                     loadMore(page);
             }
         });
+        mContentView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int scrollState) {
+                mScrollState = scrollState;
+                if(scrollState == RecyclerView.SCROLL_STATE_IDLE && !PostDatabaseHelper.isEmpty()){
+
+                    mVideoVisibilityCalculator.onScrollStateIdle(
+                            mItemsPositionGetter,
+                            mLayoutManager.findFirstVisibleItemPosition(),
+                            mLayoutManager.findLastVisibleItemPosition());
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if(!PostDatabaseHelper.isEmpty()){
+                    mVideoVisibilityCalculator.onScroll(
+                            mItemsPositionGetter,
+                            mLayoutManager.findFirstVisibleItemPosition(),
+                            mLayoutManager.findLastVisibleItemPosition() - mLayoutManager.findFirstVisibleItemPosition() + 1,
+                            mScrollState);
+                }
+            }
+        });
+        mItemsPositionGetter = new RecyclerViewItemPositionGetter(mLayoutManager, mContentView);
 
         findViewById(R.id.fab).setOnClickListener(this);
 
@@ -65,6 +120,31 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
         loadPrefs();
         mPostAdapter.notifyDataSetChanged();
         super.onResume();
+        reloadActiveVideo();
+    }
+
+    private void reloadActiveVideo() {
+        if(!PostDatabaseHelper.isEmpty()){
+            // need to call this method from list view handler in order to have filled list
+
+            mContentView.post(new Runnable() {
+                @Override
+                public void run() {
+
+                    mVideoVisibilityCalculator.onScrollStateIdle(
+                            mItemsPositionGetter,
+                            mLayoutManager.findFirstVisibleItemPosition(),
+                            mLayoutManager.findLastVisibleItemPosition());
+
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        PostDatabaseHelper.getVideoManagerInstance().resetMediaPlayer();
     }
 
     @Override
@@ -83,6 +163,7 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
         mMaxPage = (int) data.get(1);
         mPostAdapter.addPosts(newPosts);
         mLoading = false;
+        reloadActiveVideo();
     }
 
     @Override

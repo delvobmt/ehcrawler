@@ -2,7 +2,6 @@ package com.ntk.reactor.adapter;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -10,26 +9,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.VideoView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.GlideBuilder;
-import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
-import com.felipecsl.gifimageview.library.GifImageView;
-import com.koushikdutta.ion.Ion;
-import com.koushikdutta.ion.ProgressCallback;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadLargeFileListener;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.R;
-import com.ntk.reactor.ContextHolder;
 import com.ntk.reactor.GlideApp;
 import com.ntk.reactor.ReactorConstants;
 import com.ntk.reactor.ReactorContentActivity;
@@ -40,11 +31,15 @@ import com.ntk.reactor.model.Post;
 import com.ntk.reactor.model.VideoGifContent;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
+import com.volokh.danylo.video_player_manager.manager.PlayerItemChangeListener;
+import com.volokh.danylo.video_player_manager.manager.SingleVideoPlayerManager;
+import com.volokh.danylo.video_player_manager.manager.VideoPlayerManager;
+import com.volokh.danylo.video_player_manager.meta.MetaData;
+import com.volokh.danylo.video_player_manager.ui.SimpleMainThreadMediaPlayerListener;
+import com.volokh.danylo.video_player_manager.ui.VideoPlayerView;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -61,6 +56,13 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.mContext = context;
     }
 
+    private VideoPlayerManager<MetaData> mVideoPlayerManager = new SingleVideoPlayerManager(new PlayerItemChangeListener() {
+        @Override
+        public void onPlayerItemChanged(MetaData metaData) {
+
+        }
+    });
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
@@ -70,6 +72,8 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             case TYPE_ITEM: {
                 View view = LayoutInflater.from(mContext).inflate(R.layout.post_view, parent, false);
+                View videoView = view.findViewById(R.id.video_view);
+                view.setTag(videoView);
                 return new ItemViewHolder(view);
             }
             default:
@@ -90,7 +94,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof BottomViewHolder) {
             final View progressBar = holder.itemView.findViewById(R.id.progress);
             //            View buttonRetry = holder.itemView.findViewById(R.id.button_retry);
@@ -111,6 +115,32 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             final Post post = PostDatabaseHelper.getPostAt(position);
             final View showMoreView = view.findViewById(R.id.show_more_view);
             final TextView commentText = view.findViewById(R.id.comment_text);
+            final VideoPlayerView videoView = view.findViewById(R.id.video_view);
+            videoView.addMediaPlayerListener(new SimpleMainThreadMediaPlayerListener(){
+                @Override
+                public void onVideoPreparedMainThread() {
+                    // We hide the cover when video is prepared. Playback is about to start
+                    imageView.setVisibility(View.INVISIBLE);
+                    textView.setVisibility(View.INVISIBLE);
+                    progress.setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void onVideoStoppedMainThread() {
+                    // We show the cover when video is stopped
+                    imageView.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText("Paused");
+                }
+
+                @Override
+                public void onVideoCompletionMainThread() {
+                    // We show the cover when video is completed
+                    imageView.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText("Stopped");
+                }
+            });
             commentText.setVisibility(View.VISIBLE);
             commentText.setText(post.getCommentCount());
             final AtomicBoolean isMore = new AtomicBoolean(post.getContents().size() > 1);
@@ -127,62 +157,100 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (ImageContent.class.equals(firstContent.getClass())) {
                 final String src = ((ImageContent) firstContent).getSrc();
                 textView.setVisibility(View.GONE);
+                videoView.setVisibility(View.INVISIBLE);
+                Log.i(LOG_TAG, "load image src " + src);
                 GlideApp.with(mContext).clear(imageView);
                 Picasso.with(mContext).cancelRequest(imageView);
                 Picasso.with(mContext).load(src).error(R.drawable.ic_error).into(imageView, new Callback() {
                     @Override
                     public void onSuccess() {
-                        progress.setVisibility(View.GONE);
+                        imageView.setVisibility(View.VISIBLE);
+                        progress.setVisibility(View.INVISIBLE);
                     }
 
                     @Override
                     public void onError() {
                         textView.setVisibility(View.VISIBLE);
                         textView.setText("IMAGE FAILURE");
-                        progress.setVisibility(View.GONE);
+                        progress.setVisibility(View.INVISIBLE);
                     }
                 });
             } else if (VideoGifContent.class.equals(firstContent.getClass())) {
-                final String src = ((VideoGifContent) firstContent).getSrc();
+                final List<String> sources = ((VideoGifContent) firstContent).getSrc();
+                String src = "";
+                for(String s : sources){
+                    if(s.endsWith(".webm") ){
+                        src = s;
+                        break;
+                    }else if(s.endsWith(".gif")){
+                        src = s;
+                    }else if("".equals(src)){
+                        src = s;
+                    }
+                }
                 final String postSrc = ((VideoGifContent) firstContent).getPostSrc();
+                Log.i(LOG_TAG, "load video post " + postSrc);
                 textView.setVisibility(View.VISIBLE);
                 GlideApp.with(mContext).clear(imageView);
                 Picasso.with(mContext).cancelRequest(imageView);
-                GlideApp.with(mContext)
-                        .load(src)
-                        .onlyRetrieveFromCache(true)
-                        .error(GlideApp.with(mContext).load(postSrc).error(R.drawable.ic_error).addListener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                textView.setText("GIF FAILURE");
-                                progress.setVisibility(View.GONE);
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                if(postSrc.endsWith(".gif")){
-                                    textView.setVisibility(View.GONE);
+                if(src.endsWith(".gif")) {
+                    imageView.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText("GIF");
+                    videoView.setVisibility(View.INVISIBLE);
+                    GlideApp.with(mContext)
+                            .load(src)
+                            .onlyRetrieveFromCache(true)
+                            .error(GlideApp.with(mContext).load(postSrc).error(R.drawable.ic_error).addListener(new RequestListener<Drawable>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                    textView.setText("GIF FAILURE");
+                                    progress.setVisibility(View.INVISIBLE);
+                                    return false;
                                 }
-                                progress.setVisibility(View.GONE);
-                                return false;
-                            }
-                        }))
-                        .fitCenter()
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                return false;
-                            }
 
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                textView.setVisibility(View.GONE);
-                                progress.setVisibility(View.GONE);
-                                return false;
-                            }
-                        })
-                        .into(imageView);
+                                @Override
+                                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                    if (postSrc.endsWith(".gif")) {
+                                        textView.setVisibility(View.INVISIBLE);
+                                    }
+                                    progress.setVisibility(View.INVISIBLE);
+                                    return false;
+                                }
+                            }))
+                            .fitCenter()
+                            .listener(new RequestListener<Drawable>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                    textView.setVisibility(View.INVISIBLE);
+                                    progress.setVisibility(View.INVISIBLE);
+                                    return false;
+                                }
+                            })
+                            .into(imageView);
+                }else if(src.endsWith(".webm") || src.endsWith(".mp4")) {
+                    Picasso.with(mContext).load(postSrc).error(R.drawable.ic_error).into(imageView, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            imageView.setVisibility(View.VISIBLE);
+                            progress.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            textView.setVisibility(View.VISIBLE);
+                            textView.setText("VIDEO FAILURE");
+                            progress.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                    textView.setVisibility(View.VISIBLE);
+                    textView.setText("VIDEO");
+                }
             }
         }
     }

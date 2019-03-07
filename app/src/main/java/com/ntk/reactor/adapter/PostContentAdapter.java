@@ -3,6 +3,7 @@ package com.ntk.reactor.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -79,31 +81,45 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 }
             });
         } else if (VideoGifContent.class.equals(content.getClass())) {
-            final String src = ((VideoGifContent) content).getSrc();
+            final List<String> sources = ((VideoGifContent) content).getSrc();
+            String src = "";
             final String postSrc = ((VideoGifContent) content).getPostSrc();
+            for(String s : sources){
+                if(s.endsWith(".webm") ){
+                    src = s;
+                    break;
+                }else if(s.endsWith(".gif")){
+                    src = s;
+                }else if("".equals(src)){
+                    src = s;
+                }
+            }
             textView.setVisibility(View.VISIBLE);
             GlideApp.with(mContext).clear(imageView);
             Picasso.with(mContext).cancelRequest(imageView);
-            GlideApp.with(mContext)
-                    .load(src)
-                    .error(GlideApp.with(mContext).load(postSrc))
-                    .fitCenter()
-                    .listener(new RequestListener<Drawable>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            textView.setText("GIF FAILURE");
-                            progress.setVisibility(View.GONE);
-                            return false;
-                        }
+            if(src.endsWith(".gif")) {
+                GlideApp.with(mContext)
+                        .load(src)
+                        .error(GlideApp.with(mContext).load(postSrc))
+                        .fitCenter()
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                textView.setText("GIF FAILURE");
+                                progress.setVisibility(View.GONE);
+                                return false;
+                            }
 
-                        @Override
-                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            textView.setVisibility(View.GONE);
-                            progress.setVisibility(View.GONE);
-                            return false;
-                        }
-                    })
-                    .into(imageView);
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                textView.setVisibility(View.GONE);
+                                progress.setVisibility(View.GONE);
+                                return false;
+                            }
+                        })
+                        .into(imageView);
+            }else if(src.endsWith(".webm") || src.endsWith(".mp4")){
+            }
         }
     }
 
