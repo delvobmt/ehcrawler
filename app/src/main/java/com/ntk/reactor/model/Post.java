@@ -164,7 +164,7 @@ public class Post implements ListItem{
 
                     @Override
                     protected void completed(final BaseDownloadTask baseDownloadTask) {
-                        PostDatabaseHelper.getVideoManagerInstance().playNewVideo(new CurrentItemMetaData(newActiveViewPosition, newActiveView), videoView, path);
+                        PostDatabaseHelper.playNewVideo(new CurrentItemMetaData(newActiveViewPosition, newActiveView), videoView, path);
                     }
 
                     @Override
@@ -178,7 +178,7 @@ public class Post implements ListItem{
                     }
                 }).start();
             }else{
-                PostDatabaseHelper.getVideoManagerInstance().playNewVideo(new CurrentItemMetaData(newActiveViewPosition, newActiveView), videoView, path);
+                PostDatabaseHelper.playNewVideo(new CurrentItemMetaData(newActiveViewPosition, newActiveView), videoView, path);
             }
         }
     }

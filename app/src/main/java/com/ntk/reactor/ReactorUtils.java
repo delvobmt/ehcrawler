@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class ReactorUtils {
 
@@ -147,9 +148,17 @@ public class ReactorUtils {
     }
 
     private static ImageContent parseImageContent(Element child) {
-        String src = child.select("img").attr("src");
+        Elements img = child.select("img");
+        String src = img.attr("src");
+        int width = 0, height = 0;
+        try {
+            width = Integer.parseInt(child.attr("width"));
+            height = Integer.parseInt(child.attr("height"));
+        }catch (NumberFormatException e){
+            Log.e(LOG_TAG, e.getMessage());
+        }
         if(!StringUtil.isBlank(src)) {
-            return new ImageContent(src);
+            return new ImageContent(src, Integer.valueOf(width), Integer.valueOf(height));
         }
         return null;
     }
@@ -158,25 +167,31 @@ public class ReactorUtils {
         String posterSrc = "";
         List<String> videoSrc = new ArrayList<>(3);
 
+        int width = 0,height = 0;
         for(Element c : child.children()){
             if (c.tag().getName().equals("video")) {
-                posterSrc = c.attr("poster");
-                if(StringUtil.isBlank(posterSrc)){
-                    posterSrc = c.select("img").attr("src");
-                }
+                Elements img = c.select("img");
+                posterSrc = img == null ? img.attr("src"): c.attr("poster");
                 if(videoSrc.size() < 3) {
                     Elements sources = c.select("source");
                     for (Element source : sources){
                         videoSrc.add(source.attr("src"));
                     }
                 }
+                try {
+                    width = Integer.parseInt(c.attr("width"));
+                    height = Integer.parseInt(c.attr("height"));
+                }catch (NumberFormatException e){
+                    Log.e(LOG_TAG, e.getMessage());
+                }
+
             }
             if(videoSrc.isEmpty()) {
                 videoSrc.add(c.attr("href"));
             }
         }
         if(!videoSrc.isEmpty()) {
-            return new VideoGifContent(posterSrc, videoSrc);
+            return new VideoGifContent(posterSrc, videoSrc, width, height);
         }
         return null;
     }

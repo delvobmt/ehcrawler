@@ -144,7 +144,7 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
     @Override
     protected void onStop() {
         super.onStop();
-        PostDatabaseHelper.getVideoManagerInstance().resetMediaPlayer();
+        PostDatabaseHelper.resetMediaPlayer();
     }
 
     @Override

@@ -1,11 +1,15 @@
 package com.ntk.reactor.database;
 
+import android.view.View;
+
 import com.ntk.reactor.model.Content;
 import com.ntk.reactor.model.Post;
 import com.volokh.danylo.video_player_manager.manager.PlayerItemChangeListener;
 import com.volokh.danylo.video_player_manager.manager.SingleVideoPlayerManager;
 import com.volokh.danylo.video_player_manager.manager.VideoPlayerManager;
+import com.volokh.danylo.video_player_manager.meta.CurrentItemMetaData;
 import com.volokh.danylo.video_player_manager.meta.MetaData;
+import com.volokh.danylo.video_player_manager.ui.VideoPlayerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +65,11 @@ public class PostDatabaseHelper {
         }
     });
 
-    public static VideoPlayerManager<MetaData> getVideoManagerInstance(){
-        return mVideoPlayerManager;
+    public static void playNewVideo(CurrentItemMetaData currentItemMetaData, VideoPlayerView videoView, String path) {
+        mVideoPlayerManager.playNewVideo(currentItemMetaData, videoView, path);
+    }
+
+    public static void resetMediaPlayer() {
+        mVideoPlayerManager.resetMediaPlayer();
     }
 }

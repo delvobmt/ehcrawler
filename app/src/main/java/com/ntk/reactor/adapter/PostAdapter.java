@@ -21,6 +21,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadLargeFileListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.R;
+import com.ntk.reactor.ContextHolder;
 import com.ntk.reactor.GlideApp;
 import com.ntk.reactor.ReactorConstants;
 import com.ntk.reactor.ReactorContentActivity;
@@ -35,6 +36,7 @@ import com.volokh.danylo.video_player_manager.manager.PlayerItemChangeListener;
 import com.volokh.danylo.video_player_manager.manager.SingleVideoPlayerManager;
 import com.volokh.danylo.video_player_manager.manager.VideoPlayerManager;
 import com.volokh.danylo.video_player_manager.meta.MetaData;
+import com.volokh.danylo.video_player_manager.ui.ScalableTextureView;
 import com.volokh.danylo.video_player_manager.ui.SimpleMainThreadMediaPlayerListener;
 import com.volokh.danylo.video_player_manager.ui.VideoPlayerView;
 
@@ -116,6 +118,7 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             final View showMoreView = view.findViewById(R.id.show_more_view);
             final TextView commentText = view.findViewById(R.id.comment_text);
             final VideoPlayerView videoView = view.findViewById(R.id.video_view);
+            videoView.setScaleType(ScalableTextureView.ScaleType.FILL);
             videoView.addMediaPlayerListener(new SimpleMainThreadMediaPlayerListener(){
                 @Override
                 public void onVideoPreparedMainThread() {
@@ -234,6 +237,12 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             })
                             .into(imageView);
                 }else if(src.endsWith(".webm") || src.endsWith(".mp4")) {
+                    ViewGroup.LayoutParams layoutParams = videoView.getLayoutParams();
+                    int width = ContextHolder.getWidth();
+                    float ratio = width / firstContent.getWidth();
+                    int height = (int) (firstContent.getHeight() * ratio);
+                    layoutParams.height = height;
+                    videoView.setLayoutParams(layoutParams);
                     Picasso.with(mContext).load(postSrc).error(R.drawable.ic_error).into(imageView, new Callback() {
                         @Override
                         public void onSuccess() {

@@ -3,10 +3,8 @@ package com.ntk.reactor.model;
 public class ImageContent extends Content{
     private String src;
 
-    public ImageContent() {
-    }
-
-    public ImageContent(String src) {
+    public ImageContent(String src, int width, int height) {
+        super(width,height);
         this.src = src;
     }
 

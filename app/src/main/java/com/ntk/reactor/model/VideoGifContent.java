@@ -6,16 +6,10 @@ public class VideoGifContent extends Content{
     private String postSrc;
     List<String> src;
 
-    public VideoGifContent() {
-    }
-
-    public VideoGifContent(String postSrc, List<String> src) {
+    public VideoGifContent(String postSrc, List<String> src, int width, int height) {
+        super(width, height);
         this.postSrc = postSrc;
         this.src = src;
-    }
-
-    public VideoGifContent(String postSrc) {
-        this.postSrc = postSrc;
     }
 
     public List<String> getSrc() {
