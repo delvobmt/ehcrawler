@@ -239,8 +239,9 @@ public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }else if(src.endsWith(".webm") || src.endsWith(".mp4")) {
                     ViewGroup.LayoutParams layoutParams = videoView.getLayoutParams();
                     int width = ContextHolder.getWidth();
-                    float ratio = width / firstContent.getWidth();
+                    float ratio = (float)width / firstContent.getWidth();
                     int height = (int) (firstContent.getHeight() * ratio);
+                    layoutParams.width = width;
                     layoutParams.height = height;
                     videoView.setLayoutParams(layoutParams);
                     Picasso.with(mContext).load(postSrc).error(R.drawable.ic_error).into(imageView, new Callback() {
