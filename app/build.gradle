@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.ntk.reactor"
-        minSdkVersion 17
-        targetSdkVersion 25
+        minSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -18,6 +18,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    packagingOptions {
+        exclude 'META-INF/proguard/androidx-annotations.pro'
+    }
 }
 
 dependencies {
@@ -25,23 +32,26 @@ dependencies {
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation 'org.jsoup:jsoup:1.10.2'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:cardview-v7:27.1.1'
+    /* android */
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:support-vector-drawable:28.0.0'
+//    /* html parser */
+    implementation 'org.jsoup:jsoup:1.10.2'
+//    /* image processor */
     implementation 'com.squareup.picasso:picasso:2.5.2'
-    implementation 'com.android.support:support-v4:27.1.1'
-    implementation 'com.android.support:support-vector-drawable:27.1.1'
     implementation 'com.github.chrisbanes:PhotoView:2.0.0'
-    implementation 'com.github.lingochamp:FileDownloader:v1.7.1'
-    implementation 'com.felipecsl:gifimageview:2.2.0'
-    implementation 'com.koushikdutta.ion:ion:2.2.1'
-    implementation 'jp.wasabeef:picasso-transformations:2.2.1'
     implementation 'com.github.bumptech.glide:glide:4.8.0'
+//    /* downloader*/
+    implementation 'com.github.lingochamp:FileDownloader:v1.7.1'
+//    /* video */
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.10.8'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.9.6'
+    /* other */
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
-    implementation 'com.github.danylovolokh:video-player-manager:0.2.0'
-    implementation 'com.github.danylovolokh:list-visibility-utils:0.2.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
     testImplementation 'junit:junit:4.12'
 }

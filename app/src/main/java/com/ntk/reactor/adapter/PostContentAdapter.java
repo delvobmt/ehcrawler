@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -21,8 +22,21 @@ import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.R;
+import com.ntk.reactor.ContextHolder;
 import com.ntk.reactor.GlideApp;
+import com.ntk.reactor.ReactorConstants;
 import com.ntk.reactor.ReactorContentActivity;
 import com.ntk.reactor.database.PostDatabaseHelper;
 import com.ntk.reactor.model.Content;
@@ -32,18 +46,18 @@ import com.ntk.reactor.model.VideoGifContent;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class PostContentAdapter extends AbstractPostAdapter {
 
-    private static final String LOG_TAG = "LOG_" + PostContentAdapter.class.getSimpleName();
-
-    private final Context mContext;
+    private final String LOG_TAG = "LOG_" + PostContentAdapter.class.getSimpleName();
 
     List<Content> mContents;
 
     public PostContentAdapter(Context context, int position) {
-        this.mContext = context;
+        super(context);
         mContents = PostDatabaseHelper.getPostContentsAt(position);
     }
 
@@ -58,69 +72,24 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         final View view = holder.itemView;
         final ImageView imageView = view.findViewById(R.id.image_iv);
         final TextView textView = view.findViewById(R.id.gif_text);
-        final View progress = view.findViewById(R.id.progress);
-        progress.setVisibility(View.VISIBLE);
-        final Content content = mContents.get(position);
-        if (ImageContent.class.equals(content.getClass())) {
-            final String src = ((ImageContent) content).getSrc();
-            textView.setVisibility(View.GONE);
-            GlideApp.with(mContext).clear(imageView);
-            Picasso.with(mContext).cancelRequest(imageView);
-            Picasso.with(mContext).load(src).into(imageView, new Callback() {
-                @Override
-                public void onSuccess() {
-                    textView.setVisibility(View.GONE);
-                    progress.setVisibility(View.GONE);
-                }
-
-                @Override
-                public void onError() {
-                    textView.setVisibility(View.VISIBLE);
-                    textView.setText("FAILED");
-                    progress.setVisibility(View.GONE);
-                }
-            });
-        } else if (VideoGifContent.class.equals(content.getClass())) {
-            final List<String> sources = ((VideoGifContent) content).getSrc();
-            String src = "";
-            final String postSrc = ((VideoGifContent) content).getPostSrc();
-            for(String s : sources){
-                if(s.endsWith(".webm") ){
-                    src = s;
-                    break;
-                }else if(s.endsWith(".gif")){
-                    src = s;
-                }else if("".equals(src)){
-                    src = s;
-                }
-            }
-            textView.setVisibility(View.VISIBLE);
-            GlideApp.with(mContext).clear(imageView);
-            Picasso.with(mContext).cancelRequest(imageView);
-            if(src.endsWith(".gif")) {
-                GlideApp.with(mContext)
-                        .load(src)
-                        .error(GlideApp.with(mContext).load(postSrc))
-                        .fitCenter()
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                textView.setText("GIF FAILURE");
-                                progress.setVisibility(View.GONE);
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                textView.setVisibility(View.GONE);
-                                progress.setVisibility(View.GONE);
-                                return false;
-                            }
-                        })
-                        .into(imageView);
-            }else if(src.endsWith(".webm") || src.endsWith(".mp4")){
-            }
+        final ProgressBar progressView = view.findViewById(R.id.progress);
+        progressView.setVisibility(View.VISIBLE);
+        final PlayerView videoView = view.findViewById(R.id.video_view);
+        GlideApp.with(mContext).clear(imageView);
+        Picasso.with(mContext).cancelRequest(imageView);
+        SimpleExoPlayer player;
+        Object tag = view.getTag();
+        if(tag instanceof SimpleExoPlayer){
+            player = (SimpleExoPlayer) tag;
+        }else{
+            player = ExoPlayerFactory.newSimpleInstance(mContext);
+            view.setTag(player);
         }
+        Log.i(LOG_TAG, player.toString());
+        videoView.setPlayer(player);
+        imageView.setImageDrawable(null);
+        final Content content = mContents.get(position);
+        processContent(imageView, videoView, textView, progressView, player, content);
     }
 
     @Override
