@@ -1,19 +1,15 @@
 package com.ntk.reactor;
 
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
-import android.text.TextUtils;
 import android.view.MenuItem;
 
 import com.ntk.R;
-import com.ntk.ehcrawler.EHConstants;
-import com.ntk.ehcrawler.MyPreference;
 import com.ntk.ehcrawler.activities.AppCompatPreferenceActivity;
 
 public class SearchActivity extends AppCompatPreferenceActivity implements Preference.OnPreferenceChangeListener {

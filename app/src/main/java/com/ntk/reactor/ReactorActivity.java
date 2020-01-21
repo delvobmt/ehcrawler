@@ -23,6 +23,7 @@ import org.jsoup.helper.StringUtil;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ReactorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List>, View.OnClickListener {
 
@@ -68,10 +69,17 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
 
         mPreferences = getSharedPreferences(ReactorConstants.PREF_KEY, MODE_PRIVATE);
 
+        purge();
+    }
+
+    private void purge() {
         String filesDir = getFilesDir().getAbsolutePath();
         File parentFileDir = new File(filesDir);
         for (File file : parentFileDir.listFiles()) {
-            file.delete();
+            long oldTime = System.currentTimeMillis() - file.lastModified();
+            if(oldTime > TimeUnit.DAYS.toMillis(1)) {
+                file.delete();
+            }
         }
     }
 
@@ -145,12 +153,12 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
 
     private void loadPrefs() {
         String nTag = mPreferences.getString(ReactorConstants.TAG_KEY, mCurrentTag);
-        int nIndex = mPreferences.getInt(ReactorUtils.getCurrentIndexKey(mCurrentTag), mCurrentIndex);
+        int nIndex = mPreferences.getInt(ReactorUtils.getCurrentIndexKey(nTag), mCurrentIndex);
         if (!mCurrentTag.equals(nTag) ||
                 Math.abs(mCurrentIndex - nIndex) > 1 ||
                 (mCurrentIndex == 1 && StringUtil.isBlank(mCurrentTag) && PostDatabaseHelper.isEmpty())) {
             mCurrentTag = nTag;
-            mCurrentIndex = nIndex > 1 ? nIndex - 1 : nIndex;
+            mCurrentIndex = nIndex > 1 ? nIndex : nIndex;
             mPostAdapter.clear();
             mLoading = true;
             getSupportLoaderManager().restartLoader(POST_LOADER_ID, null, this).forceLoad();

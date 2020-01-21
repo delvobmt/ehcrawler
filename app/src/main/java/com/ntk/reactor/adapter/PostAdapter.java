@@ -20,9 +20,7 @@ import com.ntk.reactor.ReactorConstants;
 import com.ntk.reactor.ReactorContentActivity;
 import com.ntk.reactor.database.PostDatabaseHelper;
 import com.ntk.reactor.model.Content;
-import com.ntk.reactor.model.ImageContent;
 import com.ntk.reactor.model.Post;
-import com.ntk.reactor.model.VideoGifContent;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

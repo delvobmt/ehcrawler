@@ -2,13 +2,13 @@ package com.ntk.reactor.adapter;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -21,15 +21,11 @@ import com.google.android.exoplayer2.util.Util;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.ntk.R;
-import com.ntk.reactor.ContextHolder;
 import com.ntk.reactor.GlideApp;
 import com.ntk.reactor.ReactorConstants;
 import com.ntk.reactor.model.Content;
 import com.ntk.reactor.model.ImageContent;
 import com.ntk.reactor.model.VideoGifContent;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.List;
@@ -45,29 +41,26 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
 
     protected void processContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progress, SimpleExoPlayer player, Content content) {
         if (ImageContent.class.equals(content.getClass())) {
-            final String src = ((ImageContent) content).getSrc();
-            videoView.setVisibility(View.GONE);
-            processImage(imageView, textView, progress, src);
+            final ImageContent imageContent = ((ImageContent) content);
+            processImage(imageView, videoView, textView, progress, imageContent);
         } else if (VideoGifContent.class.equals(content.getClass())) {
             VideoGifContent videoGifContent = (VideoGifContent) content;
-            processVideoGifContent(imageView, videoView, textView, progress, player, videoGifContent);
+            processideoGifContent(imageView, videoView, textView, progress, player, videoGifContent);
         }
     }
 
-    protected void processVideoGifContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, SimpleExoPlayer player, VideoGifContent videoGifContent) {
+    protected void processideoGifContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, SimpleExoPlayer player, VideoGifContent videoGifContent) {
         final List<String> sources = videoGifContent.getSrc();
         final String SRC = chooseSrc(sources);
         final String postSrc = videoGifContent.getPostSrc();
         Log.i(LOG_TAG, "load video post " + postSrc);
         textView.setVisibility(View.VISIBLE);
-        String fileName = SRC.substring(SRC.lastIndexOf("/") + 1);
-        fileName = fileName.substring(fileName.lastIndexOf("-") + 1);
-        final String path = mContext.getFilesDir().getAbsolutePath() + File.separator + fileName;
+        final String path = getFile(SRC);
         File file = new File(path);
         if(file.exists()){
             if(SRC.endsWith(".gif")) {
                 Log.i(LOG_TAG, "GIF src = " + path + " existed");
-                processGif(imageView,  videoView, textView, progressView, path, videoGifContent);
+                processGifImage(imageView,  videoView, textView, progressView, path);
             }else if(SRC.endsWith(".webm") || SRC.endsWith(".mp4")){
                 Log.i(LOG_TAG, "VIDEO src = " + path + " existed");
                 processVideo(imageView, videoView, textView, progressView, player, file);
@@ -83,49 +76,62 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
                 textView.setText("VIDEO");
             }
             //download file
-            FileDownloadListener listener = new FileDownloadListener() {
-                @Override
-                protected void pending(BaseDownloadTask baseDownloadTask, int progress, int total) {
-                    Log.v(LOG_TAG, "pending "+ baseDownloadTask.getFilename() + "[" + progress + "/" + total + "]");
-                }
-
-                @Override
-                protected void progress(BaseDownloadTask baseDownloadTask, int progress, int total) {
-                    Log.v(LOG_TAG, "progress "+ baseDownloadTask.getFilename() + "[" + progress + "/" + total + "]");
-                    progressView.setProgress(progress);
-                    progressView.setMax(total);
-                }
-
-                @Override
-                protected void completed(BaseDownloadTask baseDownloadTask) {
-                    Log.i(LOG_TAG, "completed "+ baseDownloadTask.getFilename());
-                    if(SRC.endsWith(".gif")) {
-                        processGif(imageView, videoView, textView, progressView, path, videoGifContent);
-                    }else if(SRC.endsWith(".webm") || SRC.endsWith(".mp4")){
-                        processVideo(imageView, videoView, textView, progressView, player, file);
-                    }
-                }
-
-                @Override
-                protected void paused(BaseDownloadTask baseDownloadTask, int progress, int total) {
-                    Log.i(LOG_TAG, "paused "+ baseDownloadTask.getFilename() + "[" + progress + "/" + total + "]");
-                }
-
-                @Override
-                protected void error(BaseDownloadTask baseDownloadTask, Throwable throwable) {
-                    Log.e(LOG_TAG, "error "+ baseDownloadTask.getUrl(), throwable);
-                    textView.setText("GIF FAILURE");
-                    progressView.setVisibility(View.INVISIBLE);
-                }
-
-                @Override
-                protected void warn(BaseDownloadTask baseDownloadTask) {
-                    Log.w(LOG_TAG, "warn "+ baseDownloadTask.getFilename());
-                }
-            };
-            BaseDownloadTask baseDownloadTask = FileDownloader.getImpl().create(SRC).setPath(path).setListener(listener).addHeader("Referer", ReactorConstants.HOST);
-            baseDownloadTask.start();
+            downloadFile(imageView, videoView, textView, progressView, player, SRC, path);
         }
+    }
+
+    @NonNull
+    private String getFile(String SRC) {
+        String fileName = SRC.substring(SRC.lastIndexOf("/") + 1);
+        fileName = fileName.substring(fileName.lastIndexOf("-") + 1);
+        return mContext.getFilesDir().getAbsolutePath() + File.separator + fileName;
+    }
+
+    private void downloadFile(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, SimpleExoPlayer player, String src, String path) {
+        File file = new File(path);
+        FileDownloadListener listener = new FileDownloadListener() {
+            @Override
+            protected void pending(BaseDownloadTask baseDownloadTask, int progress, int total) {
+                Log.v(LOG_TAG, "pending "+ baseDownloadTask.getFilename() + "[" + progress + "/" + total + "]");
+            }
+
+            @Override
+            protected void progress(BaseDownloadTask baseDownloadTask, int progress, int total) {
+                Log.v(LOG_TAG, "progress "+ baseDownloadTask.getFilename() + "[" + progress + "/" + total + "]");
+                progressView.setProgress(progress);
+                progressView.setMax(total);
+            }
+
+            @Override
+            protected void completed(BaseDownloadTask baseDownloadTask) {
+                Log.i(LOG_TAG, "completed "+ baseDownloadTask.getFilename());
+
+                if(src.endsWith(".webm") || src.endsWith(".mp4")){
+                    processVideo(imageView, videoView, textView, progressView, player, file);
+                }else{
+                    processGifImage(imageView, videoView, textView, progressView, path);
+                }
+            }
+
+            @Override
+            protected void paused(BaseDownloadTask baseDownloadTask, int progress, int total) {
+                Log.i(LOG_TAG, "paused "+ baseDownloadTask.getFilename() + "[" + progress + "/" + total + "]");
+            }
+
+            @Override
+            protected void error(BaseDownloadTask baseDownloadTask, Throwable throwable) {
+                Log.e(LOG_TAG, "error "+ baseDownloadTask.getUrl(), throwable);
+                textView.setText("GIF FAILURE");
+                progressView.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            protected void warn(BaseDownloadTask baseDownloadTask) {
+                Log.w(LOG_TAG, "warn "+ baseDownloadTask.getFilename());
+            }
+        };
+        BaseDownloadTask baseDownloadTask = FileDownloader.getImpl().create(src).setPath(path).setListener(listener).addHeader("Referer", ReactorConstants.HOST);
+        baseDownloadTask.start();
     }
 
     protected String chooseSrc(List<String> sources) {
@@ -143,36 +149,23 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         return tmp;
     }
 
-    protected void processImage(ImageView imageView, TextView textView, View progress, String src) {
-        textView.setVisibility(View.GONE);
-        Log.i(LOG_TAG, "load image src " + src);
-        GlideApp.with(mContext).clear(imageView);
-        Picasso.with(mContext).cancelRequest(imageView);
-        Picasso.with(mContext).load(src).error(R.drawable.ic_error).into(imageView, new Callback() {
-            @Override
-            public void onSuccess() {
-                imageView.setVisibility(View.VISIBLE);
-                progress.setVisibility(View.INVISIBLE);
-                textView.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onError() {
-                textView.setVisibility(View.VISIBLE);
-                textView.setText("IMAGE FAILURE");
-                progress.setVisibility(View.INVISIBLE);
-            }
-        });
+    protected void processImage(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, ImageContent imageContent) {
+        videoView.setVisibility(View.GONE);
+        String src = imageContent.getSrc();
+        final String path = getFile(src);
+        File file = new File(path);
+        if(file.exists()){
+            processGifImage(imageView,  videoView, textView, progressView, path);
+        }else {
+            imageView.setVisibility(View.VISIBLE);
+            textView.setVisibility(View.VISIBLE);
+            textView.setText("IMAGE");
+            //download file
+            downloadFile(imageView, videoView, textView, progressView, null, src, path);
+        }
     }
 
-    protected void processGif(ImageView imageView, PlayerView videoView, TextView textView, View progress, String path, VideoGifContent videoGifContent) {
-        int width = ContextHolder.getWidth();
-        float ratio = (float)width / videoGifContent.getWidth();
-        int height = (int) (videoGifContent.getHeight() * ratio);
-//        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-//        layoutParams.width = width;
-//        layoutParams.height = height;
-//        imageView.setLayoutParams(layoutParams);
+    protected void processGifImage(ImageView imageView, PlayerView videoView, TextView textView, View progress, String path) {
         GlideApp.with(mContext)
                 .load(path)
                 .centerInside()
@@ -186,7 +179,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
     protected void processVideo(ImageView imageView, PlayerView videoView, TextView textView, View progress, SimpleExoPlayer player, File file) {
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mContext,
-                Util.getUserAgent(mContext, "yourApplicationName"));
+                Util.getUserAgent(mContext, "reactor"));
         // This is the MediaSource representing the media to be played.
         MediaSource videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(Uri.fromFile(file));

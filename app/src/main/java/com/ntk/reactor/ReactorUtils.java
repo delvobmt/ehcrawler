@@ -76,27 +76,30 @@ public class ReactorUtils {
     }
 
     public static Post loadPost(Post post) {
-        Log.i(LOG_TAG, String.format("load post Url=%s", post.getUrl()));
-        String url = post.getUrl();
-        if(!StringUtil.isBlank(url)){
-            try {
-                Uri uri = Uri.parse(ReactorConstants.HOST);
-                String host = uri.getHost();
-                String scheme = uri.getScheme();
-                url = scheme+"://" + host + url;
-                Document document = Jsoup.connect(url).cookies(ContextHolder.getCookies()).get();
-                List<Content> comments = collectPostComments(document);
-                post.addContent(comments);
-                return post;
+        List<Content> contents = post.getContents();
+        if(contents.isEmpty() || contents.size() == 1) {
+            Log.i(LOG_TAG, String.format("load post Url=%s", post.getUrl()));
+            String url = post.getUrl();
+            if (!StringUtil.isBlank(url)) {
+                try {
+                    Uri uri = Uri.parse(ReactorConstants.HOST);
+                    String host = uri.getHost();
+                    String scheme = uri.getScheme();
+                    url = scheme + "://" + host + url;
+                    Document document = Jsoup.connect(url).cookies(ContextHolder.getCookies()).get();
+                    List<Content> comments = collectPostComments(document);
+                    post.addContent(comments);
+                    return post;
 //                Elements commentLists = document.select(".post_comment_list");
 //                for(Element commentList : commentLists) {
 //                    collectPostComments(commentList);
 //                }
-            } catch (IOException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, e.getMessage(), e);
+                }
             }
         }
-        return null;
+        return post;
     }
 
     private static List<Content> collectPostComments(Element element) {
