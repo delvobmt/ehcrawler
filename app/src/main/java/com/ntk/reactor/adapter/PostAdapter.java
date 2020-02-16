@@ -11,8 +11,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.ntk.R;
 import com.ntk.reactor.GlideApp;
@@ -95,16 +93,6 @@ public class PostAdapter extends AbstractPostAdapter {
             final View coverView = view.findViewById(R.id.cover_view);
             GlideApp.with(mContext).clear(imageView);
             Picasso.with(mContext).cancelRequest(imageView);
-            SimpleExoPlayer player;
-            Object tag = view.getTag();
-            if(tag instanceof SimpleExoPlayer){
-                player = (SimpleExoPlayer) tag;
-            }else{
-                player = ExoPlayerFactory.newSimpleInstance(mContext);
-                view.setTag(player);
-            }
-            Log.i(LOG_TAG, player.toString());
-            videoView.setPlayer(player);
 
             progress.setVisibility(View.VISIBLE);
             commentText.setVisibility(View.VISIBLE);
@@ -118,7 +106,7 @@ public class PostAdapter extends AbstractPostAdapter {
             });
             imageView.setImageDrawable(null);
             final Content firstContent = post.getContents().get(0);
-            processContent(imageView, videoView, textView, progress, player, firstContent);
+            processContent(imageView, videoView, textView, progress, firstContent);
         }
     }
 

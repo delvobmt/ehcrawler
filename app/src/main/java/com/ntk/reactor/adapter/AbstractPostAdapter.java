@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -29,27 +30,31 @@ import com.ntk.reactor.model.VideoGifContent;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     protected final Context mContext;
     protected final String LOG_TAG = "LOG_" + AbstractPostAdapter.class.getSimpleName();
+    private static final int MAX_PLAYERS = 4;
+    private static final SimpleExoPlayer[] PLAYERS = new SimpleExoPlayer[MAX_PLAYERS];
+    private static final AtomicInteger PLAYER_INDEX = new AtomicInteger(0);
 
     protected AbstractPostAdapter(Context context) {
         this.mContext = context;
     }
 
-    protected void processContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progress, SimpleExoPlayer player, Content content) {
+    protected void processContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progress, Content content) {
         if (ImageContent.class.equals(content.getClass())) {
             final ImageContent imageContent = ((ImageContent) content);
             processImage(imageView, videoView, textView, progress, imageContent);
         } else if (VideoGifContent.class.equals(content.getClass())) {
             VideoGifContent videoGifContent = (VideoGifContent) content;
-            processideoGifContent(imageView, videoView, textView, progress, player, videoGifContent);
+            processideoGifContent(imageView, videoView, textView, progress, videoGifContent);
         }
     }
 
-    protected void processideoGifContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, SimpleExoPlayer player, VideoGifContent videoGifContent) {
+    protected void processideoGifContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, VideoGifContent videoGifContent) {
         final List<String> sources = videoGifContent.getSrc();
         final String SRC = chooseSrc(sources);
         final String postSrc = videoGifContent.getPostSrc();
@@ -63,7 +68,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
                 processGifImage(imageView,  videoView, textView, progressView, path);
             }else if(SRC.endsWith(".webm") || SRC.endsWith(".mp4")){
                 Log.i(LOG_TAG, "VIDEO src = " + path + " existed");
-                processVideo(imageView, videoView, textView, progressView, player, file);
+                processVideo(imageView, videoView, textView, progressView, file);
             }
         }else {
             if(SRC.endsWith(".gif")) {
@@ -76,7 +81,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
                 textView.setText("VIDEO");
             }
             //download file
-            downloadFile(imageView, videoView, textView, progressView, player, SRC, path);
+            downloadFile(imageView, videoView, textView, progressView, SRC, path);
         }
     }
 
@@ -87,7 +92,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         return mContext.getFilesDir().getAbsolutePath() + File.separator + fileName;
     }
 
-    private void downloadFile(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, SimpleExoPlayer player, String src, String path) {
+    private void downloadFile(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, String src, String path) {
         File file = new File(path);
         FileDownloadListener listener = new FileDownloadListener() {
             @Override
@@ -107,7 +112,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
                 Log.i(LOG_TAG, "completed "+ baseDownloadTask.getFilename());
 
                 if(src.endsWith(".webm") || src.endsWith(".mp4")){
-                    processVideo(imageView, videoView, textView, progressView, player, file);
+                    processVideo(imageView, videoView, textView, progressView, file);
                 }else{
                     processGifImage(imageView, videoView, textView, progressView, path);
                 }
@@ -161,7 +166,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
             textView.setVisibility(View.VISIBLE);
             textView.setText("IMAGE");
             //download file
-            downloadFile(imageView, videoView, textView, progressView, null, src, path);
+            downloadFile(imageView, videoView, textView, progressView, src, path);
         }
     }
 
@@ -176,7 +181,7 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         textView.setVisibility(View.INVISIBLE);
     }
 
-    protected void processVideo(ImageView imageView, PlayerView videoView, TextView textView, View progress, SimpleExoPlayer player, File file) {
+    protected void processVideo(ImageView imageView, PlayerView videoView, TextView textView, View progress, File file) {
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mContext,
                 Util.getUserAgent(mContext, "reactor"));
@@ -184,6 +189,16 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         MediaSource videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(Uri.fromFile(file));
         // Prepare the player with the source.
+
+        int index = PLAYER_INDEX.incrementAndGet();
+        SimpleExoPlayer player = PLAYERS[(index % MAX_PLAYERS)];
+        if(player == null){
+            player = ExoPlayerFactory.newSimpleInstance(mContext);
+            PLAYERS[(index % MAX_PLAYERS)] = player;
+        }
+        Log.i(LOG_TAG, player.toString());
+        videoView.setPlayer(player);
+
         player.prepare(videoSource);
         progress.setVisibility(View.INVISIBLE);
         textView.setVisibility(View.INVISIBLE);
