@@ -3,6 +3,7 @@ package com.ntk.reactor;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.ntk.reactor.model.Content;
 import com.ntk.reactor.model.ImageContent;
@@ -46,9 +47,10 @@ public class ReactorUtils {
                 url = scheme + "://" + host + "/tag/" + tag;
             }
             url = index == 0 ? url : url.concat("/").concat(String.valueOf(index));
-
+            ReactorActivity.setDebugTextView(String.format("loading uri %s", url));
             Document document = Jsoup.connect(url).cookies(ContextHolder.getCookies()).get();
             int maxPage = getMaxPage(document);
+            ReactorActivity.setDebugTextView(String.format("tag: %s idx: %d max %d", tag, index, maxPage));
             List<Post> posts = load(document);
             return Arrays.asList(posts, maxPage);
 
@@ -61,16 +63,23 @@ public class ReactorUtils {
     private static List<Post> load(Element document) {
         List<Post> posts = new ArrayList<>();
         Elements elements = document.select(".postContainer");
-        for (Element e: elements) {
+        for (int i = 0; i < elements.size(); i++) {
+            Element e = elements.get(i);
             Post post = new Post(e.attr("id"));
             Elements select = e.select(".commentnum.toggleComments");
             String url = select.attr("href");
-            post.setCommentCount(select.text());
+            String text = select.text();
+            post.setCommentCount(text);
             post.setUrl(url);
             collectPostContent(e, post);
             collectPostTags(e, post);
-            if(!post.getContents().isEmpty())
+            ReactorActivity.setDebugTextView(String.format("loading %s %d/%d", post.getUrl(), i, elements.size()));
+            if(!post.getContents().isEmpty()) {
+                if (!text.contains("0")) {
+                    loadPost(post);
+                }
                 posts.add(post);
+            }
         }
         return posts;
     }

@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.ntk.R;
 import com.ntk.reactor.adapter.PostContentAdapter;
@@ -46,6 +47,12 @@ public class ReactorContentActivity extends AppCompatActivity implements View.On
         contentView.setAdapter(mPostAdapter);
         LinearLayoutManager lm1 = new LinearLayoutManager(this);
         contentView.setLayoutManager(lm1);
+        contentView.addOnScrollListener(new CloseOnEndRecyclerViewScrollListener(lm1) {
+            @Override
+            public void onTheEnd() {
+                finish();
+            }
+        });
 
         RecyclerView tagView = findViewById(R.id.tags_view);
         mTagAdapter = new TagAdapter(this, mPosition, this);

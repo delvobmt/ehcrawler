@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -32,8 +33,10 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Player.EventListener {
 
+    protected static final int TYPE_ITEM = 1;
+    protected static final int TYPE_PROGRESS = 0;
     protected final Context mContext;
     protected final String LOG_TAG = "LOG_" + AbstractPostAdapter.class.getSimpleName();
     private static final int MAX_PLAYERS = 4;
@@ -44,17 +47,29 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         this.mContext = context;
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        if (position == bottomItemPosition()) {
+            return TYPE_PROGRESS;
+        }
+        return TYPE_ITEM;
+    }
+
+    protected int bottomItemPosition() {
+        return getItemCount() - 1;
+    }
+
     protected void processContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progress, Content content) {
         if (ImageContent.class.equals(content.getClass())) {
             final ImageContent imageContent = ((ImageContent) content);
             processImage(imageView, videoView, textView, progress, imageContent);
         } else if (VideoGifContent.class.equals(content.getClass())) {
             VideoGifContent videoGifContent = (VideoGifContent) content;
-            processideoGifContent(imageView, videoView, textView, progress, videoGifContent);
+            processVideoGifContent(imageView, videoView, textView, progress, videoGifContent);
         }
     }
 
-    protected void processideoGifContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, VideoGifContent videoGifContent) {
+    protected void processVideoGifContent(ImageView imageView, PlayerView videoView, TextView textView, ProgressBar progressView, VideoGifContent videoGifContent) {
         final List<String> sources = videoGifContent.getSrc();
         final String SRC = chooseSrc(sources);
         final String postSrc = videoGifContent.getPostSrc();
@@ -62,24 +77,24 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         textView.setVisibility(View.VISIBLE);
         final String path = getFile(SRC);
         File file = new File(path);
+        boolean isGif = SRC.endsWith(".gif");
+        boolean isVideo = SRC.endsWith(".webm") || SRC.endsWith(".mp4");
+
         if(file.exists()){
-            if(SRC.endsWith(".gif")) {
+            if(isGif) {
                 Log.i(LOG_TAG, "GIF src = " + path + " existed");
                 processGifImage(imageView,  videoView, textView, progressView, path);
-            }else if(SRC.endsWith(".webm") || SRC.endsWith(".mp4")){
+            }else if(isVideo){
                 Log.i(LOG_TAG, "VIDEO src = " + path + " existed");
                 processVideo(imageView, videoView, textView, progressView, file);
             }
         }else {
-            if(SRC.endsWith(".gif")) {
-                imageView.setVisibility(View.VISIBLE);
-                textView.setVisibility(View.VISIBLE);
-                textView.setText("GIF");
-            }else{
-                imageView.setVisibility(View.VISIBLE);
-                textView.setVisibility(View.VISIBLE);
-                textView.setText("VIDEO");
-            }
+            String text = "PIC";
+            if(isGif) text = "GIF";
+            else if (isVideo) text = "VIDEO";
+            imageView.setVisibility(View.VISIBLE);
+            textView.setVisibility(View.VISIBLE);
+            textView.setText(text);
             //download file
             downloadFile(imageView, videoView, textView, progressView, SRC, path);
         }
@@ -194,7 +209,9 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         SimpleExoPlayer player = PLAYERS[(index % MAX_PLAYERS)];
         if(player == null){
             player = ExoPlayerFactory.newSimpleInstance(mContext);
+            player.addListener(this);
             PLAYERS[(index % MAX_PLAYERS)] = player;
+
         }
         Log.i(LOG_TAG, player.toString());
         videoView.setPlayer(player);
@@ -206,5 +223,10 @@ public abstract class AbstractPostAdapter extends RecyclerView.Adapter<RecyclerV
         videoView.setVisibility(View.VISIBLE);
         player.setPlayWhenReady(true);
         player.setRepeatMode(Player.REPEAT_MODE_ALL);
+    }
+
+    @Override
+    public void onPlayerError(ExoPlaybackException error) {
+        Log.e(LOG_TAG, error.getMessage(), error);
     }
 }

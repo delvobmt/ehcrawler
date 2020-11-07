@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center"
+    >
+
+    <TextView
+        android:id="@+id/text_no_more_item"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/thumb_height"
+        android:text="Scroll down to close"
+        android:gravity="top|center_horizontal"/>
+
+</RelativeLayout>

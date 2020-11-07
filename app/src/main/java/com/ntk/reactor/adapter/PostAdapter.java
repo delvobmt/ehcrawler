@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PostAdapter extends AbstractPostAdapter {
 
-    private static final int TYPE_ITEM = 1;
-    private static final int TYPE_PROGRESS = 0;
     private boolean mOnLoadMoreFailed;
     private boolean mIsReachEnd;
 
@@ -53,18 +51,6 @@ public class PostAdapter extends AbstractPostAdapter {
             default:
                 throw new IllegalArgumentException(String.format("viewType %d is not supported", viewType));
         }
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        if (position == bottomItemPosition()) {
-            return TYPE_PROGRESS;
-        }
-        return TYPE_ITEM;
-    }
-
-    private int bottomItemPosition() {
-        return getItemCount() - 1;
     }
 
     @Override

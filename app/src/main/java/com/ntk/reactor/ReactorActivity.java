@@ -13,6 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
+import android.widget.TextView;
 
 import com.liulishuo.filedownloader.FileDownloader;
 import com.ntk.R;
@@ -41,6 +42,19 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
     private int mScrollState = AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
     private RecyclerView mContentView;
     private LinearLayoutManager mLayoutManager;
+    private static TextView mTextView;
+
+    public static void setDebugTextView(String text){
+        if(mTextView != null) {
+            mTextView.setText(text);
+        }
+    }
+
+    public static void hideDebugTestView(){
+        if(mTextView != null) {
+            mTextView.setText(null);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +82,8 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
         findViewById(R.id.fab).setOnClickListener(this);
 
         mPreferences = getSharedPreferences(ReactorConstants.PREF_KEY, MODE_PRIVATE);
+
+        mTextView = findViewById(R.id.debug_text);
 
         purge();
     }
@@ -107,6 +123,7 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
         return new AsyncTaskLoader<List>(this) {
             @Override
             public List loadInBackground() {
+                hideDebugTestView();
                 return ReactorUtils.load(mCurrentTag, mCurrentIndex);
             }
         };
@@ -114,6 +131,7 @@ public class ReactorActivity extends AppCompatActivity implements LoaderManager.
 
     @Override
     public void onLoadFinished(Loader<List> loader, List data) {
+        hideDebugTestView();
         if(data!=null && !data.isEmpty()) {
             List newPosts = (List) data.get(0);
             mMaxPage = (int) data.get(1);
